@@ -1,0 +1,64 @@
+'use server'
+
+import webpush from 'web-push'
+
+webpush.setVapidDetails(
+  'mailto:your-email@example.com',
+  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+  process.env.VAPID_PRIVATE_KEY!
+)
+
+// Interface pour la subscription sérialisée
+interface SerializedPushSubscription {
+  endpoint: string
+  keys: {
+    p256dh: string
+    auth: string
+  }
+}
+
+let subscription: SerializedPushSubscription | null = null
+
+export async function subscribeUser(sub: SerializedPushSubscription) {
+  subscription = sub
+  // En production, vous voudrez stocker l'abonnement en base de données
+  // Par exemple: await db.subscriptions.create({ data: sub })
+  return { success: true }
+}
+
+export async function unsubscribeUser() {
+  subscription = null
+  // En production, vous voudrez supprimer l'abonnement de la base de données
+  // Par exemple: await db.subscriptions.delete({ where: { ... } })
+  return { success: true }
+}
+
+export async function sendNotification(message: string) {
+  if (!subscription) {
+    throw new Error('Aucun abonnement disponible')
+  }
+
+  try {
+    // Convertir la subscription sérialisée au format web-push
+    const pushSubscription: webpush.PushSubscription = {
+      endpoint: subscription.endpoint,
+      keys: {
+        p256dh: subscription.keys.p256dh,
+        auth: subscription.keys.auth,
+      },
+    }
+
+    await webpush.sendNotification(
+      pushSubscription,
+      JSON.stringify({
+        title: 'Notification Test',
+        body: message,
+        icon: '/icon-192x192.png',
+      })
+    )
+    return { success: true }
+  } catch (error) {
+    console.error('Erreur envoi notification push:', error)
+    return { success: false, error: 'Échec envoi notification' }
+  }
+}

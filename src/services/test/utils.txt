@@ -1,0 +1,33 @@
+import { MockedDependencies } from "./utils.helper";
+
+export function createJestWrapper<T extends (...args: any[]) => any>(
+    originalFunction: T,
+    dependencySpies: Record<string, () => jest.SpyInstance>
+  ) {
+    return async (
+      ...args: [...Parameters<T>, MockedDependencies]
+    ): Promise<ReturnType<T>> => {
+      const functionArgs = args.slice(0, -1) as Parameters<T>;
+      const mockImplementations = args[args.length - 1] as MockedDependencies;
+      
+      // Configurer les spies
+      const spies: jest.SpyInstance[] = [];
+      
+      try {
+        for (const [depName, spyFactory] of Object.entries(dependencySpies)) {
+          if (mockImplementations[depName]) {
+            const spy = spyFactory();
+            spy.mockImplementation(mockImplementations[depName]);
+            spies.push(spy);
+          }
+        }
+        
+        // Exécuter la fonction
+        return await originalFunction(...functionArgs);
+        
+      } finally {
+        // Nettoyer les spies
+        spies.forEach(spy => spy.mockRestore());
+      }
+    };
+  }

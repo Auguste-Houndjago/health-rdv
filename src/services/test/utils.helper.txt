@@ -1,0 +1,85 @@
+// src/test-utils/createTestWrapper.ts
+
+export type MockedDependencies = Record<string, jest.Mock | any>;
+
+export interface WrapperOptions {
+  preserveContext?: boolean;
+  defaultMocks?: MockedDependencies;
+  interceptors?: {
+    before?: (functionName: string, args: any[]) => void;
+    after?: (functionName: string, result: any, args: any[]) => void;
+  };
+}
+
+/**
+ * Crée automatiquement un wrapper testable pour une fonction
+ * en remplaçant ses dépendances par des mocks
+ */
+export function createTestWrapper<T extends (...args: any[]) => any>(
+  originalFunction: T,
+  dependencyMap: Record<string, string>, // { 'nomVariableLocale': 'nomModuleImport' }
+  options: WrapperOptions = {}
+) {
+  return async (
+    ...args: [...Parameters<T>, MockedDependencies]
+  ): Promise<ReturnType<T>> => {
+    // Le dernier argument contient les mocks
+    const functionArgs = args.slice(0, -1) as Parameters<T>;
+    const mockedDeps = args[args.length - 1] as MockedDependencies;
+    
+    // Fusionner avec les mocks par défaut
+    const allMocks = { ...options.defaultMocks, ...mockedDeps };
+    
+    // Intercepteur avant
+    options.interceptors?.before?.(originalFunction.name, functionArgs);
+    
+    // Sauvegarder les dépendances originales
+    const originalDeps: Record<string, any> = {};
+    const moduleExports: Record<string, any> = {};
+    
+    try {
+      // Pour chaque dépendance à mocker
+      for (const [localVarName, modulePath] of Object.entries(dependencyMap)) {
+        if (allMocks[localVarName]) {
+          // Dynamically require the module
+          const module = require(modulePath);
+          moduleExports[modulePath] = module;
+          
+          // Sauvegarder la fonction originale
+          originalDeps[localVarName] = module[localVarName] || module.default || module;
+          
+          // Remplacer par le mock
+          if (module[localVarName]) {
+            module[localVarName] = allMocks[localVarName];
+          } else if (module.default) {
+            module.default = allMocks[localVarName];
+          } else {
+            // Si c'est un export direct, plus complexe...
+            Object.assign(module, allMocks[localVarName]);
+          }
+        }
+      }
+      
+      // Exécuter la fonction avec les dépendances mockées
+      const result = await originalFunction(...functionArgs);
+      
+      // Intercepteur après
+      options.interceptors?.after?.(originalFunction.name, result, functionArgs);
+      
+      return result;
+      
+    } finally {
+      // Restaurer les dépendances originales
+      for (const [localVarName, modulePath] of Object.entries(dependencyMap)) {
+        if (originalDeps[localVarName] && moduleExports[modulePath]) {
+          const module = moduleExports[modulePath];
+          if (module[localVarName]) {
+            module[localVarName] = originalDeps[localVarName];
+          } else if (module.default) {
+            module.default = originalDeps[localVarName];
+          }
+        }
+      }
+    }
+  };
+}

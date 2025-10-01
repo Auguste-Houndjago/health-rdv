@@ -1,0 +1,50 @@
+// src/middleware.ts
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getUserInfo } from "./services/users/userInfo";
+
+
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next();
+
+  // Récupérer les infos utilisateur via getUserInfo (JWT + cache)
+  const userInfo = await getUserInfo();
+
+  // Inject pathname pour Server Components
+  res.headers.set("x-pathname", req.nextUrl.pathname);
+
+  // Si l'utilisateur est authentifié et essaie d'accéder aux pages d'auth
+  if (userInfo && req.nextUrl.pathname.startsWith("/auth")) {
+    if (userInfo.organization?.slug) {
+      // Rediriger vers la page principale de l'organisation existante
+      return NextResponse.redirect(
+        new URL(`/${userInfo.organization.slug}`, req.url)
+      );
+    } else {
+      // Rediriger vers la page d'enregistrement d'organisation
+      return NextResponse.redirect(
+        new URL("/organization/register", req.url)
+      );
+    }
+  }
+
+  // Si l'utilisateur n'est pas authentifié et essaie d'accéder aux pages protégées
+  if (!userInfo && req.nextUrl.pathname.startsWith("/(attendancy)")) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  // Optimisation: Cache headers pour routes statiques
+  if (req.nextUrl.pathname.startsWith("/admin")) {
+    res.headers.set("Cache-Control", "private, max-age=0");
+  }
+
+  return res;
+}
+
+export const config = {
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+    "/(attendancy)/:path*",
+    "/auth/welcome",
+  ],
+};

@@ -1,0 +1,123 @@
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { FlatCompat } from "@eslint/eslintrc";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+const eslintConfig = [
+  // ⚡ Next.js + TypeScript de base
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    // 🔹 Fichiers ignorés
+    ignores: [
+      "node_modules/**",
+      ".next/**",
+      "out/**",
+      "build/**",
+      "next-env.d.ts",
+    ],
+  },
+  {
+    rules: {
+      // -------------------------------
+      // 🔹 TypeScript strict
+      // -------------------------------
+      "@typescript-eslint/ban-ts-comment": "warn", // évite d’abuser de // @ts-ignore
+      "@typescript-eslint/ban-types": "warn", // évite certains types interdits (ex: {}
+      "@typescript-eslint/consistent-type-definitions": ["warn", "interface"], // préfère "interface" à "type"
+      "@typescript-eslint/explicit-function-return-type": "warn", // forcer le retour typé des fonctions
+      "@typescript-eslint/explicit-module-boundary-types": "warn", // type de retour explicite pour exports publics
+      "@typescript-eslint/no-explicit-any": "warn", // avertit si tu utilises "any"
+      "@typescript-eslint/no-inferrable-types": "warn", // évite d’écrire "let x: number = 1"
+      "@typescript-eslint/no-non-null-assertion": "warn", // évite "!" partout
+      "@typescript-eslint/no-non-null-asserted-optional-chain": "warn", // évite "?.!"
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }], // avertit si variable non utilisée
+      "@typescript-eslint/prefer-as-const": "warn", // préfère const assertions → "as const"
+      "@typescript-eslint/prefer-optional-chain": "warn", // préfère ?. au lieu des longs if
+      "@typescript-eslint/prefer-nullish-coalescing": "warn", // préfère ?? à ||
+
+      // -------------------------------
+      // 🔹 Bonnes pratiques JS
+      // -------------------------------
+      "array-callback-return": "warn", // forcer return dans map/filter
+      "default-case": "warn", // forcer un default dans switch
+      "eqeqeq": ["warn", "always"], // toujours utiliser ===
+      "no-alert": "warn", // déconseille alert()
+      "no-console": "warn", // évite les console.log
+      "no-debugger": "warn", // évite debugger
+      "no-empty-function": "warn", // évite les fonctions vides
+      "no-eval": "warn", // interdit eval()
+      "no-extend-native": "warn", // interdit d’ajouter des méthodes aux objets natifs
+      "no-implied-eval": "warn", // interdit setTimeout("string")
+      "no-multi-spaces": "warn", // pas d’espaces multiples
+      "no-new-func": "warn", // interdit Function("...") dynamique
+      "no-param-reassign": "warn", // évite de réassigner les paramètres de fonction
+      "no-return-assign": "warn", // interdit les return x = y
+      "no-sequences": "warn", // interdit "," dans les expressions
+      "no-shadow": "warn", // évite de redéfinir une variable dans une portée
+      "no-throw-literal": "warn", // interdit throw "string"
+      "no-unused-expressions": "warn", // interdit les expressions inutiles (ex: a && b)
+      "no-useless-concat": "warn", // évite les concat inutiles
+      "no-useless-return": "warn", // return inutiles
+      "prefer-const": "warn", // préfère const si pas de réassignation
+      "prefer-template": "warn", // préfère les template strings `${}` à +
+      "require-await": "warn", // interdit async sans await
+
+      // -------------------------------
+      // 🔹 Style / formatage
+      // -------------------------------
+      "semi": ["warn", "always"], // points-virgules obligatoires
+      "quotes": ["warn", "double", { avoidEscape: true }], // utiliser guillemets doubles
+      "indent": ["warn", 2, { SwitchCase: 1 }], // indentation à 2 espaces
+      "comma-dangle": ["warn", "always-multiline"], // virgule finale sur les objets/arrays multilignes
+      "object-curly-spacing": ["warn", "always"], // espace entre { }
+      "array-bracket-spacing": ["warn", "never"], // pas d’espace [ ]
+      "space-before-blocks": "warn", // espace avant {
+      "keyword-spacing": ["warn", { before: true, after: true }], // espace autour des mots-clés
+      "no-trailing-spaces": "warn", // pas d’espace en fin de ligne
+      "eol-last": ["warn", "always"], // toujours une ligne vide en fin de fichier
+      "max-len": ["warn", { code: 100, ignoreUrls: true }], // limite 100 caractères par ligne
+
+      // -------------------------------
+      // 🔹 React
+      // -------------------------------
+      "react/jsx-boolean-value": ["warn", "never"], // <Component disabled /> au lieu de disabled={true}
+      "react/jsx-key": "warn", // clé obligatoire dans les listes
+      "react/jsx-no-duplicate-props": "warn", // pas de props dupliquées
+      "react/jsx-no-undef": "warn", // interdit JSX avec variable non définie
+      "react/jsx-uses-react": "warn", // pour JSX avec React
+      "react/jsx-uses-vars": "warn", // évite que JSX soit considéré comme unused
+      "react/no-children-prop": "warn", // interdit d’utiliser children comme prop
+      "react/no-danger": "warn", // évite dangerouslySetInnerHTML
+      "react/no-deprecated": "warn", // avertit si tu utilises des API React obsolètes
+      "react/no-direct-mutation-state": "warn", // interdit de modifier state directement
+      "react/no-unescaped-entities": "warn", // interdit caractères bruts dans JSX
+      "react/no-unknown-property": "warn", // interdit props inconnues dans JSX
+      "react/react-in-jsx-scope": "warn", // React doit être importé si JSX (sauf Next)
+
+      // -------------------------------
+      // 🔹 React Hooks
+      // -------------------------------
+      "react-hooks/rules-of-hooks": "warn", // règles de hooks (useState/useEffect)
+      "react-hooks/exhaustive-deps": "warn", // dépendances manquantes dans useEffect
+
+      // -------------------------------
+      // 🔹 Next.js spécifiques
+      // -------------------------------
+      "@next/next/no-img-element": "warn", // préfère <Image> à <img>
+      "@next/next/no-document-import-in-page": "warn", // interdit _document.tsx dans pages/
+      "@next/next/no-head-element": "warn", // interdit <head> → utilise next/head
+      "@next/next/no-script-in-head": "warn", // interdit <script> dans <Head>
+      "@next/next/no-sync-scripts": "warn", // interdit scripts bloquants
+      "@next/next/google-font-display": "warn", // bonne config Google Fonts
+      "@next/next/google-font-preconnect": "warn", // performance fonts
+    },
+  },
+];
+
+export default eslintConfig;
