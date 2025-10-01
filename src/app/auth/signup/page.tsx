@@ -1,6 +1,7 @@
 
 import { getUserInfo } from "@/services/users";
 import { redirect } from "next/navigation";
+import {SignInPage} from "@/components/auth/sign-in"
 
 export default async function Signup({
   searchParams,
@@ -15,7 +16,6 @@ export default async function Signup({
   }
 
  return(
-  // <SignupMainOrg/>
-  <></>
+      <SignInPage/>
  )
 }
