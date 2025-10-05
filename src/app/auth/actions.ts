@@ -14,7 +14,7 @@ export const getAuthStatus = async () => {
     return { success: false };
   }
 
-  const existingUser = await prisma.user.findFirst({
+  const existingUser = await prisma.utilisateur.findFirst({
     where: {
       id: user.id,
       email: user.email,
