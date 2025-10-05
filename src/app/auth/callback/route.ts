@@ -81,6 +81,9 @@ export async function GET(request: NextRequest) {
     }
 
 
+    console.log(
+      "url:", requestUrl.origin ,"error:"
+    )
 
 
 

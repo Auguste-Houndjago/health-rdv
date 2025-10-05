@@ -17,6 +17,12 @@ export default async function Signup({
   }
 
  return(
-      <SignUpPage role="MEDECIN" title="INSCRIPTION" description="Patient"/>
+  <div>
+    <h1>
+user : {user?.email}
+    </h1>
+    <SignUpPage role="MEDECIN" title="INSCRIPTION" description="Patient"/>
+  </div>
+      
  )
 }

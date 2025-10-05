@@ -1,3 +1,4 @@
+// src/services/users/avatar_url.ts
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
@@ -41,9 +42,10 @@ export async function updateAvatar(avatarUrl: string) {
       where: { email },
       update: {  avatarUrl },
       create: { 
+        id: user.id,
         email, 
         avatarUrl,
-        nom: user.user_metadata?.nom ,
+        nom: user.user_metadata?.nom || " " ,
 
       },
     });
