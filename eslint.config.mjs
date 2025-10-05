@@ -57,7 +57,7 @@ const eslintConfig = [
     },
   },
 
-  // ✅ Sécurité absolue : fallback pour forcer "warn" sur tout le reste
+  //  Sécurité absolue : fallback pour forcer "warn" sur tout le reste
   {
     rules: new Proxy({}, { get: () => "warn" }),
   },
