@@ -7,6 +7,9 @@ import { useEntityCache } from '@/hooks/entity/useEntityCache';
 
 import Link from 'next/link';
 import React, { useEffect } from 'react'
+import MedecinPhoneAnimation from '@/components/animation/Medecin_phone'
+import { Alpha, Flex, TextAnimate } from '@/components/animation/TextAnimate';
+import VaporizeTextCycle, { VaporizeText } from '@/components/animation/VaporizeTextUx';
 
 export default function page() {
 
@@ -15,18 +18,7 @@ export default function page() {
 
   return (
     <div>
-      {/* <pre>
-        {JSON.stringify(data, null, 2)}
-      </pre> */}
-
-      <Link href={"/test"}>
-     page test
-      </Link>
-
-
-
-      {/* <Home/> */}
-      {/* <DebugPWAVercel/> */}
+        <Home/>
     </div>
   )
 }

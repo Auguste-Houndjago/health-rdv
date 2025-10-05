@@ -1,7 +1,6 @@
 // types/user.ts
 
-import { UserStatus } from "@prisma/client";
-import { GroupeSanguin, Sexe, StatutApproval } from "../../generated/prisma";
+import { GroupeSanguin, Sexe, StatusUtilisateur, StatutApproval, StatutRendezVous } from "@prisma/client";
 
 export const UserRoles = {
     ADMIN: "ADMIN",
@@ -86,7 +85,7 @@ export interface UserInfo {
   
   // Gestion des invitations et statut
   invited_by?: InvitedBy;
-  status?: UserStatus;
+  status?: StatusUtilisateur;
   invitationToken?: string;
   invitationType?: string;
   

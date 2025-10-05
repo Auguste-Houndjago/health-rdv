@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "@lottiefiles/dotlottie-react": "^0.17.3",
     "@prisma/client": "^6.16.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -57,6 +58,7 @@
     "i": "^0.3.7",
     "input-otp": "^1.4.2",
     "jwt-decode": "^4.0.0",
+    "lottie-react": "^2.4.1",
     "lru-cache": "^11.2.1",
     "lucide-react": "^0.544.0",
     "nanoid": "^5.1.5",
@@ -66,6 +68,7 @@
     "next-themes": "^0.4.6",
     "node-interval-tree": "^2.1.2",
     "npm": "^11.6.1",
+    "radix-ui": "^1.4.3",
     "react": "19.1.0",
     "react-day-picker": "^9.11.0",
     "react-dom": "19.1.0",

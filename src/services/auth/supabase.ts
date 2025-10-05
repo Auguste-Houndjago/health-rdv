@@ -20,26 +20,26 @@ interface SignUpParams {
 
 
 
-export async function signUpResponsable(params: SignUpParams) {
-  const { email, password, info } = params;
+// export async function signUpResponsable(params: SignUpParams) {
+//   const { email, password, info } = params;
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
+//   const supabase = await createClient();
+//   const { data, error } = await supabase.auth.signUp({
+//     email,
+//     password,
     
-    options: {
-      emailRedirectTo: `${baseUrl}/auth/callback`,
-      data: {
-        ...info,
-        role: Role.ADMIN,
-        function: Functions.SUPER_ADMIN,
-      },
-    },
-  });
+//     options: {
+//       emailRedirectTo: `${baseUrl}/auth/callback`,
+//       data: {
+//         ...info,
+//         role: Role.ADMIN,
+//         function: Functions.SUPER_ADMIN,
+//       },
+//     },
+//   });
 
-  return { data, error };
-}
+//   return { data, error };
+// }
 
 
 
@@ -111,7 +111,6 @@ export async function updateUser(email: string, password: string) {
 }
 
 
-
 export async function signUp(
   email: string,
   password: string,
@@ -119,30 +118,35 @@ export async function signUp(
     name?: string;
     phone?: string;
     avatar_url?: string;
+    role?: Role;
   },
 ) {
   try {
     const supabase = await createClient();
+
+    // 🔽 On fusionne les métadonnées, y compris le rôle
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${baseUrl}/auth/callback`,
         data: {
-          name: metadata?.name,
-          phone: metadata?.phone,
-          avatar_url: metadata?.avatar_url,
+          name: metadata?.name ?? null,
+          phone: metadata?.phone ?? null,
+          avatar_url: metadata?.avatar_url ?? null,
+          role: metadata?.role || "PATIENT", 
         },
       },
     });
 
     if (error) {
-      return redirect("/auth/signup?message=Could not authenticate user");
+      throw new Error(error.message);
     }
 
-    return redirect(
-      `/auth/signup?message=Check email(${email}) to continue sign in process`,
-    );
+    return {
+      success: true,
+      message: `Check your email (${email}) to continue sign up process`,
+    };
   } catch (err: any) {
     return {
       success: false,
@@ -263,7 +267,7 @@ export async function updateProfile(
     if (authError) throw authError;
 
     // Mise à jour dans Prisma
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await prisma.utilisateur.update({
       where: { id: userId },
       data,
     });

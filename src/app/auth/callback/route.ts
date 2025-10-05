@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error("Erreur d'authentification:", error.message);
-   return NextResponse.redirect(new URL("/organization/register", origin));
+   return NextResponse.redirect(new URL("/", origin));
   }
 
   if (session) {
@@ -50,9 +50,10 @@ export async function GET(request: NextRequest) {
   if (userInfo) {
     const userFunction = userInfo.function;
     const userRole = userInfo.role;
-    const orgSlug = userInfo.hopital.id;
+    const orgSlug = userInfo.hopital?.slug ?? null; 
+    const hopitalId = userInfo.hopital?.id ?? null; 
     const newUser = userInfo.status === "PENDING";
-    const hasOrg = Boolean(userInfo.hopital?.id);
+    const hasOrg = Boolean(hopitalId);
     const invitationToken = userInfo.invitationToken;
 
     // Check for invitation token and redirect to welcome/token page
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
       "userFunction" , userFunction, "userRole", userRole, "hasOrg", hasOrg
     )
 
-    if (userFunction === "MEDECIN" && !hasOrg) {
+    if ((userFunction === "RESPONSABLE" || userFunction === "SUPER_ADMIN") && !hasOrg) {
       console.log("REDIRECT ORG SETUP PAGE");
       return NextResponse.redirect(
         new URL("/auth/org-setup", requestUrl.origin),
@@ -74,21 +75,28 @@ export async function GET(request: NextRequest) {
     }
 
 
-    // if (userRole === "ADMIN") {
-    //   return NextResponse.redirect(
-    //     new URL(hasOrg ? "/admin" : "/auth/org-setup", requestUrl.origin),
-    //   );
-    // }
+    if (newUser && (userRole === "MEDECIN" || userRole === "PATIENT")) {
+      return NextResponse.redirect(
+        new URL("/auth/information", requestUrl.origin),
+      );
+    } 
 
-    // if (userRole === "TEACHER" && newUser && orgSlug) {
-    //   return NextResponse.redirect(
-    //     new URL(`/setting/welcome?org=${orgSlug}`, requestUrl.origin),
-    //   );
-    // }
 
-    // return NextResponse.redirect(
-    //   new URL("/auth/setup-role", requestUrl.origin),
-    // );
+    if (userRole === "MEDECIN") {
+      return NextResponse.redirect(
+        new URL(hasOrg ? "/medecin" : "/medecin/hopital", requestUrl.origin),
+      );
+    }
+
+    if (userRole === "PATIENT") {
+      return NextResponse.redirect(
+        new URL(hasOrg ? "/patient" : "/patient/hopital", requestUrl.origin),
+      );
+    }
+
+    return NextResponse.redirect(
+      new URL("/auth/information", requestUrl.origin),
+    );
   }
 
   return NextResponse.redirect(new URL("/login", requestUrl.origin));

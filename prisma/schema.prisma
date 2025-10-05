@@ -8,6 +8,7 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
+
 /// =========================
 /// 📌 Utilisateur global
 /// =========================
@@ -17,13 +18,17 @@ model Utilisateur {
   prenom              String?
   email               String               @unique
   telephone           String?
-  dateCreation        DateTime             @default(now())
+  avatarUrl          String?
+  dateNaissance       DateTime?
   status              StatusUtilisateur    @default(ACTIF)
   administrateur      Administrateur?
   medecin             Medecin?
   patient             Patient?
   rendezVous          RendezVous[]
   utilisateurHopitals UtilisateurHopital[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
 }
 
 /// =========================
@@ -41,7 +46,6 @@ model Administrateur {
 /// =========================
 model Patient {
   id            String        @id @default(uuid())
-  dateNaissance DateTime
   adresse       String?
   groupeSanguin GroupeSanguin @default(INCONNU)
   poids         Float?
@@ -177,9 +181,9 @@ model UtilisateurHopital {
 /// 📌 Enumérations
 /// =========================
 enum Role {
-  patient
-  medecin
-  admin
+  PATIENT 
+  MEDECIN 
+  ADMIN
 }
 
 enum FonctionAdmin {
@@ -215,6 +219,7 @@ enum StatutRendezVous {
 enum StatusUtilisateur {
   ACTIF
   INACTIF
+  PENDING
 }
 
 enum StatutApproval {
