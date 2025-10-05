@@ -1,11 +1,11 @@
 // src/services/auth/supabase.ts
-
+"use server";
 import { createClient } from "@/utils/supabase/server";
 import {prisma} from "@/lib/prisma";
 import { redirect } from "next/navigation";
 
 import { Functions, UserInfo } from "@/types/user";
-import { Role } from "@prisma/client";
+import { Role, StatusUtilisateur } from "@prisma/client";
 import { getUserInfo } from "../users/userInfo";
 
 
@@ -119,6 +119,7 @@ export async function signUp(
     phone?: string;
     avatar_url?: string;
     role?: Role;
+    status?:StatusUtilisateur
   },
 ) {
   try {
@@ -135,6 +136,7 @@ export async function signUp(
           phone: metadata?.phone ?? null,
           avatar_url: metadata?.avatar_url ?? null,
           role: metadata?.role || "PATIENT", 
+          status:metadata?.status || "PENDING"
         },
       },
     });
@@ -202,6 +204,7 @@ export async function signInWithGitHub() {
 }
 
 // Déconnexion
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();

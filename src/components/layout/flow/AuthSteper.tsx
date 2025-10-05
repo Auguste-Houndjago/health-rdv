@@ -1,4 +1,4 @@
-//src/components/layout/flow/AuthSteper
+// src/components/layout/flow/AuthSteper.tsx
 "use client"
 
 import * as React from "react"
@@ -17,29 +17,21 @@ import {
 } from '@/components/ui/stepper'
 import { Check, LoaderCircleIcon } from 'lucide-react'
 import { useAuthProfileStepper } from "@/hooks/useAuthProfileStepper"
-import { IdentityStepCard, BirthdateStepCard, ProfileStepCard } from "./StepCards"
+import { IdentityStepCard, BirthdateStepCard, ProfileStepCard, MedecinProfileStepCard } from "./StepCards"
 import { useProfileMutations } from "@/hooks/useProfileMutations"
 import type { Sexe as PrismaSexe, GroupeSanguin as PrismaGroupeSanguin } from "@prisma/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
-
 type Step = 1 | 2 | 3
+export type Role = 'PATIENT' | 'MEDECIN'
 
 interface UnifiedStepperProps {
-  onComplete?: (data: {
-    nom: string;
-    prenom: string;
-    telephone?: string;
-    avatarUrl?: string;
-    dateNaissance: string; // ISO string depuis <input type="date">
-    sexe: 'Homme' | 'Femme' | 'Autre';
-    groupeSanguin: 'A_POSITIF' | 'A_NEGATIF' | 'B_POSITIF' | 'B_NEGATIF' | 'AB_POSITIF' | 'AB_NEGATIF' | 'O_POSITIF' | 'O_NEGATIF' | 'INCONNU';
-    adresse?: string;
-  }) => void
+  role: Role
+  onComplete?: (data: any) => void
 }
 
-const steps = [
+const getSteps = (role: Role) => [
   { 
     title: 'Identité', 
     description: 'Renseignez vos informations personnelles',
@@ -51,34 +43,38 @@ const steps = [
     step: 2 as Step
   },
   { 
-    title: 'Profil patient', 
-    description: 'Complétez votre profil patient',
+    title: role === 'PATIENT' ? 'Profil patient' : 'Profil médecin', 
+    description: role === 'PATIENT' ? 'Complétez votre profil patient' : 'Complétez votre profil médecin',
     step: 3 as Step
   },
 ]
 
-export default function AuthSteper({ onComplete }: UnifiedStepperProps) {
+export default function AuthSteper({ role="PATIENT", onComplete }: UnifiedStepperProps) {
   const {
     currentStep,
     nextStep,
     prevStep,
     handleStepChange,
     validateStep,
-    // step 1
+    // champs communs
     nom, setNom,
     prenom, setPrenom,
     telephone, setTelephone,
-    // step 2
     avatarUrl, setAvatarUrl,
     dateNaissance, setDateNaissance,
-    // step 3
+    // champs patient
     sexe, setSexe,
     groupeSanguin, setGroupeSanguin,
     adresse, setAdresse,
+    // champs médecin
+    specialiteId, setSpecialiteId,
+    numLicence, setNumLicence,
+    anneeExperience, setAnneeExperience,
+    titre, setTitre,
     getProfileData,
-  } = useAuthProfileStepper()
+  } = useAuthProfileStepper(role)
 
-  const { submitAll, profilMutation, identiteMutation, naissanceMutation } = useProfileMutations()
+  const { submitAll, profilMutation, identiteMutation, naissanceMutation } = useProfileMutations(role)
 
   const isSubmitting = identiteMutation.isPending || naissanceMutation.isPending || profilMutation.isPending
 
@@ -93,22 +89,12 @@ export default function AuthSteper({ onComplete }: UnifiedStepperProps) {
     const payload = getProfileData()
     if (!payload) return
 
-    const prismaPayload = {
-      nom: payload.nom,
-      prenom: payload.prenom,
-      telephone: payload.telephone,
-      avatarUrl: payload.avatarUrl,
-      dateNaissance: payload.dateNaissance,
-      sexe: payload.sexe as unknown as PrismaSexe,
-      groupeSanguin: payload.groupeSanguin as unknown as PrismaGroupeSanguin,
-      adresse: payload.adresse,
-    }
-
-    await submitAll(prismaPayload as any)
+    await submitAll(payload as any)
     onComplete?.(payload)
-    toast.success("Event has been created.")
+    toast.success("Profil créé avec succès!")
 
-    router.push("/patient")
+    // Redirection selon le rôle
+    router.push(role === 'PATIENT' ? "/patient" : "/medecin")
   }
 
   const getStepContent = (step: Step) => {
@@ -169,23 +155,41 @@ export default function AuthSteper({ onComplete }: UnifiedStepperProps) {
             transition={{ duration: 0.3 }}
             className="flex flex-col gap-4"
           >
-            <ProfileStepCard
-              sexe={sexe as any}
-              setSexe={setSexe as any}
-              groupeSanguin={groupeSanguin as any}
-              setGroupeSanguin={setGroupeSanguin as any}
-              adresse={adresse}
-              setAdresse={setAdresse}
-              onBack={prevStep}
-              onSubmit={submit}
-              canSubmit={validateStep(3) && !isSubmitting}
-            />
+            {role === 'PATIENT' ? (
+              <ProfileStepCard
+                sexe={sexe as any}
+                setSexe={setSexe as any}
+                groupeSanguin={groupeSanguin as any}
+                setGroupeSanguin={setGroupeSanguin as any}
+                adresse={adresse}
+                setAdresse={setAdresse}
+                onBack={prevStep}
+                onSubmit={submit}
+                canSubmit={validateStep(3) && !isSubmitting}
+              />
+            ) : (
+              <MedecinProfileStepCard
+                specialiteId={specialiteId}
+                setSpecialiteId={setSpecialiteId}
+                numLicence={numLicence}
+                setNumLicence={setNumLicence}
+                anneeExperience={anneeExperience}
+                setAnneeExperience={setAnneeExperience}
+                titre={titre}
+                setTitre={setTitre}
+                onBack={prevStep}
+                onSubmit={submit}
+                canSubmit={validateStep(3) && !isSubmitting}
+              />
+            )}
           </motion.div>
         )
       default:
         return null
     }
   }
+
+  const steps = getSteps(role)
 
   return (
     <div className="flex flex-col gap-5 p-10 w-full mx-auto max-w-[600px] h-full justify-center items-center">

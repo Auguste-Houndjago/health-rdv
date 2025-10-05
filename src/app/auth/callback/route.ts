@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
   }
 
   // 🔽 Utilisation de la fonction getUserInfo à la place de getUser()
-  const userInfo = await getUserInfo();
+  const userInfo = await getUserInfo({ cache: false });
 
   if (userInfo) {
     const userFunction = userInfo.function;
@@ -67,6 +67,12 @@ export async function GET(request: NextRequest) {
       "userFunction" , userFunction, "userRole", userRole, "hasOrg", hasOrg
     )
 
+
+    if (newUser) {
+      return NextResponse.redirect(new URL("/auth/information", origin));
+    }
+  
+
     if ((userFunction === "RESPONSABLE" || userFunction === "SUPER_ADMIN") && !hasOrg) {
       console.log("REDIRECT ORG SETUP PAGE");
       return NextResponse.redirect(
@@ -75,11 +81,7 @@ export async function GET(request: NextRequest) {
     }
 
 
-    if (newUser && (userRole === "MEDECIN" || userRole === "PATIENT")) {
-      return NextResponse.redirect(
-        new URL("/auth/information", requestUrl.origin),
-      );
-    } 
+
 
 
     if (userRole === "MEDECIN") {

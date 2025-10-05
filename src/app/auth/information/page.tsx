@@ -1,8 +1,10 @@
 
 import VaporizeTextCycle, { Tag } from "@/components/animation/VaporizeTextUx";
-import AuthSteper from "@/components/layout/flow/AuthSteper";
-import StepCard from "@/components/step-card";
+import AuthSteper, { Role } from "@/components/layout/flow/AuthSteper";
+
+
 import { getUserInfo } from "@/services/users";
+
 import { redirect } from "next/navigation";
 
 
@@ -13,6 +15,13 @@ export default async function Signup({
 }) {
 
   const user = await getUserInfo()
+  const role = user?.role 
+
+  if (role !== "PATIENT" && role !== "MEDECIN") {
+    console.log("role pas inclut", role)
+    return redirect("/");
+  }
+  
 
 
  return(
@@ -34,7 +43,7 @@ export default async function Signup({
                         tag={Tag.H1}
         />
         </div>
-         <AuthSteper/>
+         <AuthSteper role={role} />
       </div>
     </div>
  )

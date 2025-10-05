@@ -35,7 +35,7 @@ export type AuthorizationResult = { success: true } | { success: false; error: s
 export async function getAuthorization(
   user: UserInfo,
   requiredRole?: Role,
-  requiredFunction?: Functions
+  requiredFunction?: any
 ): Promise<AuthorizationResult> {
   const userRole = user.role;
   const userFunction = user.function;
@@ -53,10 +53,9 @@ export async function getAuthorization(
   if (requiredRole) {
     const allowedRolesMap: Record<Role, Role[]> = {
       ADMIN: ["ADMIN"],
-      TEACHER: ["ADMIN", "TEACHER"],
-      STUDENT: ["STUDENT", "ADMIN"],
-      PARENT: ["PARENT", "ADMIN"],
-      GUEST: ["GUEST", "ADMIN"]
+      MEDECIN: ["MEDECIN", "ADMIN"],
+      PATIENT: ["PATIENT", "ADMIN"],
+      GUEST: ["GUEST", "GUEST"]
     };
 
     if (!allowedRolesMap[requiredRole]?.includes(userRole)) {
@@ -77,10 +76,10 @@ export async function getAuthorization(
  * @param user L'utilisateur connecté
  * @param permission Nom de la permission à vérifier
  */
-export async function userHasPermission(user: UserInfo, permission: string): Promise<boolean> {
-  if (!user.organization?.permissions) return false;
-  return user.organization.permissions.includes(permission);
-}
+// export async function userHasPermission(user: UserInfo, permission: string): Promise<boolean> {
+//   if (!user.organization?.permissions) return false;
+//   return user.organization.permissions.includes(permission);
+// }
 
 /**
  * Vérifie à la fois rôle et permission
@@ -88,16 +87,16 @@ export async function userHasPermission(user: UserInfo, permission: string): Pro
  * @param requiredRole Rôle minimum requis
  * @param permission Permission à vérifier (optionnel)
  */
-export async function authorize(user: UserInfo, requiredRole: Role, permission?: string): Promise<AuthorizationResult> {
-  const roleCheck = await getAuthorization(user, requiredRole);
-  if (!roleCheck.success) return roleCheck;
+// export async function authorize(user: UserInfo, requiredRole: Role, permission?: string): Promise<AuthorizationResult> {
+//   const roleCheck = await getAuthorization(user, requiredRole);
+//   if (!roleCheck.success) return roleCheck;
 
-  if (permission && !userHasPermission(user, permission)) {
-    return { success: false, error: "Vous n'avez pas la permission requise pour cette action" };
-  }
+//   if (permission && !userHasPermission(user, permission)) {
+//     return { success: false, error: "Vous n'avez pas la permission requise pour cette action" };
+//   }
 
-  return { success: true };
-}
+//   return { success: true };
+// }
 
 // Fonction pour vérifier si l'utilisateur a un rôle spécifique
 export async function userHasRole(role: Role): Promise<boolean> {

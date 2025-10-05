@@ -1,23 +1,24 @@
-"use client"
+"use server"
 import Home from '@/components/home/Home'
-import DebugPWAVercel from '@/components/notification/notif'
-import { useEntity } from '@/hooks/entity/useEntity';
-import { useEntityCache } from '@/hooks/entity/useEntityCache';
 
 
-import Link from 'next/link';
-import React, { useEffect } from 'react'
-import MedecinPhoneAnimation from '@/components/animation/Medecin_phone'
-import { Alpha, Flex, TextAnimate } from '@/components/animation/TextAnimate';
-import VaporizeTextCycle, { VaporizeText } from '@/components/animation/VaporizeTextUx';
-
-export default function page() {
+import { clearCache, getAuthUser, getCacheStats, getUserInfo } from '@/services/users';
 
 
+export default async function page() {
+  clearCache()
+const user = await getUserInfo({cache:false})
 
-
+ const realuser = await getAuthUser()
+const cached =  getCacheStats()
+clearCache()
   return (
     <div>
+      <h1>{user?.email} maill</h1>
+      <h1>
+        <h1> real user : {realuser?.email}</h1>
+      size: {cached?.size} max: {cached?.maxSize}
+      </h1>
         <Home/>
     </div>
   )

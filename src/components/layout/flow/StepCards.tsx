@@ -216,3 +216,91 @@ export function ProfileStepCard({
     </StepCard>
   )
 } 
+
+
+
+//medecin
+export function MedecinProfileStepCard({
+  specialiteId,
+  setSpecialiteId,
+  numLicence,
+  setNumLicence,
+  anneeExperience,
+  setAnneeExperience,
+  titre,
+  setTitre,
+  onBack,
+  onSubmit,
+  canSubmit,
+}: {
+  specialiteId: string
+  setSpecialiteId: (v: string) => void
+  numLicence: string
+  setNumLicence: (v: string) => void
+  anneeExperience: number | ""
+  setAnneeExperience: (v: number | "") => void
+  titre: string
+  setTitre: (v: string) => void
+  onBack: () => void
+  onSubmit: () => void
+  canSubmit: boolean
+}) {
+  return (
+    <StepCard title="Profil médecin">
+      <div className="flex flex-col gap-4">
+        <div>
+          <Label htmlFor="specialiteId">Spécialité</Label>
+          <Input
+            id="specialiteId"
+            type="text"
+            placeholder="Cardiologie"
+            value={specialiteId}
+            onChange={(e) => setSpecialiteId(e.target.value)}
+            className="mt-1"
+          />
+        </div>
+        <div>
+          <Label htmlFor="numLicence">Numéro de licence</Label>
+          <Input
+            id="numLicence"
+            type="text"
+            placeholder="LIC123456"
+            value={numLicence}
+            onChange={(e) => setNumLicence(e.target.value)}
+            className="mt-1"
+          />
+        </div>
+        <div>
+          <Label htmlFor="anneeExperience">Années d'expérience</Label>
+          <Input
+            id="anneeExperience"
+            type="number"
+            placeholder="5"
+            value={anneeExperience}
+            onChange={(e) => setAnneeExperience(e.target.value ? Number(e.target.value) : "")}
+            className="mt-1"
+          />
+        </div>
+        <div>
+          <Label htmlFor="titre">Titre</Label>
+          <Input
+            id="titre"
+            type="text"
+            placeholder="Docteur"
+            value={titre}
+            onChange={(e) => setTitre(e.target.value)}
+            className="mt-1"
+          />
+        </div>
+        <div className="flex justify-between mt-2">
+          <Button variant="outline" onClick={onBack}>
+            Retour
+          </Button>
+          <Button onClick={onSubmit} disabled={!canSubmit}>
+            Valider
+          </Button>
+        </div>
+      </div>
+    </StepCard>
+  )
+}

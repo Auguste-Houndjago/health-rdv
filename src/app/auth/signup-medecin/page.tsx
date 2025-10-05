@@ -10,7 +10,7 @@ export default async function Signup({
   searchParams: { message: string };
 }) {
 
-  const user = await getUserInfo()
+  const user = await getUserInfo({cache:false})
 
   if (user) {
     return redirect("/");
