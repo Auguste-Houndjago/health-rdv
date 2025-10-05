@@ -43,48 +43,70 @@ interface SignUpParams {
 
 
 
-export async function login( formData: FormData) {
+
+export async function login(formData: FormData): Promise<void> {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
   const supabase = await createClient();
 
-  const { data: authData, error: signInError } =
-    await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
   if (signInError) {
-    return { error: "Email ou mot de passe incorrect" };
+    // Rediriger avec un message d'erreur au lieu de retourner un objet
+    redirect(`/login?error=${encodeURIComponent("Email ou mot de passe incorrect")}`);
+    return;
   }
 
   if (!authData.user) {
-    return { error: "Erreur lors de la connexion" };
+    redirect(`/login?error=${encodeURIComponent("Erreur lors de la connexion")}`);
+    return;
   }
 
-  // Utiliser getUserInfo pour récupérer les métadonnées de l'utilisateur
+  // Récupération des infos utilisateur
   const userInfo = await getUserInfo();
-  
+
   if (!userInfo) {
-    console.log("Impossible de récupérer les informations utilisateur");
-    return { error: "Erreur lors de la récupération des informations utilisateur" };
+    console.error("Impossible de récupérer les informations utilisateur");
+    redirect(`/login?error=${encodeURIComponent("Erreur lors de la récupération des informations utilisateur")}`);
+    return;
   }
 
   const userRole = userInfo.role;
-  const orgSlug = userInfo.hopital?.slug;
 
-  if (!userRole || !orgSlug) {
-    console.log("Informations utilisateur manquantes");
-    return { error: "Informations utilisateur incomplètes" };
+
+  if (!userRole) {
+    console.error("Rôle utilisateur manquant");
+    redirect(`/login?error=${encodeURIComponent("Rôle utilisateur non défini")}`);
+    return;
   }
 
-  // Définir le chemin de redirection
-  const redirectPath =
-    userRole === "ADMIN" ? `/${orgSlug}/admin` : `/${orgSlug}/teacher`;
+  // Définir le chemin de redirection selon le rôle
+  let redirectPath: string;
 
-  return { redirectPath };
+  switch (userRole) {
+    case "ADMIN":
+      redirectPath = `/admin`;
+      break;
+    case "MEDECIN":
+      redirectPath = `/medecin`;
+      break;
+    case "PATIENT":
+      redirectPath = `/patient`;
+      break;
+    default:
+      redirectPath = "/";
+      break;
+  }
+
+  // Utiliser redirect au lieu de retourner un objet
+  redirect(redirectPath);
+
 }
+
 
 
 

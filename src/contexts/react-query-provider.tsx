@@ -9,7 +9,17 @@ export default function ReactQueryProvider({
 }: {
   children: ReactNode;
 }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Temps par défaut avant que les données soient considérées comme stale
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        // Temps avant que les données inactives soient garbage collected
+        gcTime: 10 * 60 * 1000, // 10 minutes
+      },
+    },
+  }
+  ));
 
   return (
     <QueryClientProvider client={queryClient}>

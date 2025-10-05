@@ -1,5 +1,6 @@
 "use server"
 import Home from '@/components/home/Home'
+import Header from '@/components/layout/Header';
 
 
 import { clearCache, getAuthUser, getCacheStats, getUserInfo } from '@/services/users';
@@ -11,9 +12,11 @@ const user = await getUserInfo({cache:false})
 
  const realuser = await getAuthUser()
 const cached =  getCacheStats()
+
 clearCache()
   return (
     <div>
+      <Header/>
       {/* <h1>{user?.email} maill</h1>
       <h1> real user : {realuser?.email}</h1>
       <h1>

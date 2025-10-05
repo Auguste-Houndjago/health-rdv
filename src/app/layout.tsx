@@ -5,6 +5,7 @@ import ReactQueryProvider from "@/contexts/react-query-provider";
 import { Toaster } from "sonner";
 import Header from "@/components/layout/Header";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { UserProvider } from "@/providers/UserProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ReactQueryProvider>
+          <UserProvider>
         <ThemeProvider
             attribute="class"
             defaultTheme="dark"
@@ -39,10 +41,11 @@ export default function RootLayout({
             disableTransitionOnChange
             enableColorScheme
           >
-        <Header/>
           {children}
           <Toaster />
+          
           </ThemeProvider>
+          </UserProvider>
         </ReactQueryProvider>
       </body>
     </html>

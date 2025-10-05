@@ -19,15 +19,12 @@ import {
 } from "lucide-react";
 import { logoutAction } from "@/services/auth/authActions";
 import { navigationItems } from "./config/navigation";
-import { useUserContext } from "@/providers/UserProvider";
-import LogOutForm from "../auth/LogOutForm";
 
 
 
 export default function PatientSidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useUserContext()
 
   return (
     <>
@@ -99,15 +96,19 @@ export default function PatientSidebar() {
           })}
         </nav>
 
-      {/* Footer */}
+        {/* Footer */}
         <div className="pt-4 border-t">
           <div className="space-y-2">
             <div className="flex items-center gap-2 p-2 text-sm text-muted-foreground">
               <Stethoscope className="h-4 w-4" />
               <span>Mode Patient</span>
             </div>
-            <h1>{user?.email} </h1>
-            <LogOutForm/>
+            <form action={logoutAction}>
+              <Button type="submit" variant="outline" size="sm" className="w-full">
+                <LogOut className="h-4 w-4 mr-2" />
+                Déconnexion
+              </Button>
+            </form>
 
           </div>
         </div>
