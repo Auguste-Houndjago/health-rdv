@@ -1,13 +1,12 @@
+// app/patient/appointments/AppointmentsContent.tsx
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-
 import { useSearchParams, useRouter } from "next/navigation";
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-export default function PatientAppointmentsPage() {
+export default function AppointmentsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [newRdvOpen, setNewRdvOpen] = useState(false);
@@ -71,7 +70,6 @@ export default function PatientAppointmentsPage() {
 
   return (
     <div className="min-h-screen ">
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
@@ -84,43 +82,41 @@ export default function PatientAppointmentsPage() {
               Nouveau rendez-vous
             </Button>
           </div>
-      <p className="text-sm text-foreground/60 mb-4">Gestion de vos rendez-vous médicaux.</p>
+          <p className="text-sm text-foreground/60 mb-4">Gestion de vos rendez-vous médicaux.</p>
 
-      <div className="space-y-2">
-        {appointments.map((r, idx) => (
-          <div key={idx} className="border rounded-md p-3 flex items-center justify-between">
-            <div>
-              <p className="font-medium">{r.service} • {r.hopital}</p>
-              <p className="text-sm text-foreground/60">{r.date} • {r.heure}</p>
-            </div>
-            <span className="text-xs px-2 py-1 rounded bg-muted">{r.statut}</span>
+          <div className="space-y-2">
+            {appointments.map((r, idx) => (
+              <div key={idx} className="border rounded-md p-3 flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{r.service} • {r.hopital}</p>
+                  <p className="text-sm text-foreground/60">{r.date} • {r.heure}</p>
+                </div>
+                <span className="text-xs px-2 py-1 rounded bg-muted">{r.statut}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      {/* <AppointmentModal
-        open={newRdvOpen}
-        onOpenChange={setNewRdvOpen}
-        medecins={medecins}
-        disponibilites={disponibilites}
-        selectedMedecin={selectedMedecin}
-        onMedecinChange={setSelectedMedecin}
-        selectedDate={selectedDate}
-        selectedDateObj={selectedDateObj}
-        onDateSelect={(date) => {
-          setSelectedDateObj(date);
-          setSelectedDate(date ? date.toISOString().slice(0,10) : "");
-          setSelectedSlotId("");
-        }}
-        selectedSlotId={selectedSlotId}
-        onSlotSelect={setSelectedSlotId}
-        motif={motif}
-        onMotifChange={setMotif}
-        onConfirm={handleConfirmRdv}
-      /> */}
+          {/* <AppointmentModal
+            open={newRdvOpen}
+            onOpenChange={setNewRdvOpen}
+            medecins={medecins}
+            disponibilites={disponibilites}
+            selectedMedecin={selectedMedecin}
+            onMedecinChange={setSelectedMedecin}
+            selectedDate={selectedDate}
+            selectedDateObj={selectedDateObj}
+            onDateSelect={(date) => {
+              setSelectedDateObj(date);
+              setSelectedDate(date ? date.toISOString().slice(0,10) : "");
+              setSelectedSlotId("");
+            }}
+            selectedSlotId={selectedSlotId}
+            onSlotSelect={setSelectedSlotId}
+            motif={motif}
+            onMotifChange={setMotif}
+            onConfirm={handleConfirmRdv}
+          /> */}
         </Card>
       </div>
     </div>
   );
 }
-
-
