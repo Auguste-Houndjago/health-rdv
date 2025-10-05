@@ -64,7 +64,7 @@ export default function PatientSidebar() {
           variant="outline"
           size="icon"
           onClick={() => setIsOpen(!isOpen)}
-          className="bg-white shadow-lg"
+          className=" shadow-lg"
         >
           {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>

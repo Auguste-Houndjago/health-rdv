@@ -1,14 +1,13 @@
-
+"use server"
 import PatientSidebar from '@/components/patient/PatientSidebar';
 
-export default function PatientLayout({
+export default async function PatientLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
 
-  
-
+  console.log("PATIEN LAYOUT")
   
   return (
     <div className="flex h-screen bg-background">
