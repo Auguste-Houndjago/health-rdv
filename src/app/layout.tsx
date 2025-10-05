@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Attendancy",
-  description: "Manager des absences",
+  title: "MedEasy",
+  description: "Prenez facilement vos rendez-vous",
 };
 
 export default function RootLayout({

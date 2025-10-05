@@ -61,12 +61,8 @@ export async function upsertDateAvatar(params: {
   return prisma.utilisateur.update({
     where: { id: userId },
     data: {
-      // Ces champs supposent qu'ils existent dans le modèle Utilisateur
-      // avatarUrl et dateNaissance
-      // Si le schéma a bien été mis à jour, ceci fonctionnera
-      // Sinon, il faudra ajuster le schéma Prisma
       avatarUrl,
-      dateNaissance: date ,
+      dateNaissance: date,
     },
   })
 }

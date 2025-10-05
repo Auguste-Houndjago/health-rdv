@@ -2,12 +2,10 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
-
-import {prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 export async function updateAvatar(avatarUrl: string) {
   try {
-
     const supabase = await createClient();
 
     // Récupérer l'utilisateur authentifié
@@ -40,13 +38,12 @@ export async function updateAvatar(avatarUrl: string) {
     // Mettre à jour la base de données Prisma
     const updatedUser = await prisma.utilisateur.upsert({
       where: { email },
-      update: {  avatarUrl },
+      update: { avatarUrl },
       create: { 
         id: user.id,
         email, 
         avatarUrl,
-        nom: user.user_metadata?.nom || " " ,
-
+        nom: user.user_metadata?.nom || " ",
       },
     });
 
@@ -62,4 +59,4 @@ export async function updateAvatar(avatarUrl: string) {
       error: error.message || "Erreur lors de la mise à jour de l'avatar",
     };
   }
-} 
+}
