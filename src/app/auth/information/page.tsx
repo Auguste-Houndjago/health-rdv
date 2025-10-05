@@ -8,7 +8,7 @@ import { getUserInfo } from "@/services/users";
 import { redirect } from "next/navigation";
 
 
-export default async function Signup({
+export default async function Page({
   searchParams,
 }: {
   searchParams: Promise<{ message?: string }>;
