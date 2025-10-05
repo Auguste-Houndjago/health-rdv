@@ -4,6 +4,7 @@ import MedecinPhoneAnimation from "../animation/Medecin_phone";
 import { TextAnimate } from "../animation/TextAnimate";
 import { GoogleIcon } from "./components";
 import { SignUpForm } from "./SignUpForm";
+import { handleGoogleLogin } from "@/services/auth/googleAuth";
 
 interface SignUpPageProps {
   title?: string;
@@ -40,7 +41,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
             </div>
           
             {/* Formulaire client avec action serveur */}
-            <SignUpForm onGoogleSignUp={onGoogleSignUp} role={role} />
+            <SignUpForm  role={role} />
 
             <div className="animate-element animate-delay-900 relative flex items-center justify-center">
               <span className="w-full border-t border-border"></span>
@@ -48,7 +49,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
             </div>
 
             <button
-              onClick={onGoogleSignUp}
+              onClick={handleGoogleLogin}
               className="animate-element animate-delay-1000 w-full flex items-center justify-center gap-3 border border-border rounded-2xl py-4 hover:bg-secondary transition-colors"
             >
               <GoogleIcon />

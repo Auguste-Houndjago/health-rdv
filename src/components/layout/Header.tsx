@@ -1,25 +1,44 @@
-// import { ModeToggle } from "./ModeToggle";
-// // import Bellx from "./Bellx";
-// import AuthButton from "../auth/AuthButton";
-// import OrganisationHeader from "./OrganisationHeader";
-// import WelcomeLink from "../auth/WelcomeLink";
+import React from 'react';
 
-// export default function Header() {
-//   return (
-//     <div className="z-50">
-//       <nav className="flex h-16 w-full justify-center border-b border-b-foreground/10">
-//         <div className="flex w-full max-w-4xl items-center justify-between p-3 text-sm md:max-w-full">
-//           <OrganisationHeader />
-//           {/* <WelcomeLink /> */}
-//           {/* <NavAdmin/> */}
-//           {/* <NotificationPopover /> */}
-//           <div className="flex flex-row items-center justify-center gap-x-4">
-//             {/* <Bellx size={24}  className="" /> */}
-//             <ModeToggle />
-//             <AuthButton />
-//           </div>
-//         </div>
-//       </nav>
-//     </div>
-//   );
-// }
+import Link from 'next/link';
+
+import { Heart } from 'lucide-react';
+import Nav from './navigation/Nav';
+import { Button } from '../ui/button';
+
+
+interface HeaderProps {
+  className?: string;
+}
+
+const Header: React.FC<HeaderProps> = ({ className = '' }) => {
+  return (
+    <header className={`bg-background border-b ${className}`}>
+      <nav className=" mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link href="/" className="flex-shrink-0 flex justify-center items-center gap-2" aria-label="Aller à l'accueil">
+              <span className="text-2xl font-bold text-primary">MedEasy </span> <Heart size={20} /> 
+            </Link>
+          </div>
+
+          {/* Navigation Links */}
+    
+
+          {/* Actions */}
+          <div className="flex items-center space-x-4">
+                  <Nav className="text-card" />
+            <Link href="/register">
+              <Button variant="default" size="sm">
+                S'inscrire
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </nav>
+    </header>
+  );
+};
+
+export default Header;

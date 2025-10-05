@@ -23,7 +23,7 @@ export default async function Signup({
     <h1>
 user : {user?.email}
     </h1>
-    <SignUpPage role="MEDECIN" title="INSCRIPTION" description="Patient"/>
+    <SignUpPage role="MEDECIN" title="INSCRIPTION" description="Medecin"/>
   </div>
       
  )

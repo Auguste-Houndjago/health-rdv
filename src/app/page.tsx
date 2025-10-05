@@ -14,12 +14,12 @@ const cached =  getCacheStats()
 clearCache()
   return (
     <div>
-      <h1>{user?.email} maill</h1>
+      {/* <h1>{user?.email} maill</h1>
       <h1> real user : {realuser?.email}</h1>
       <h1>
 
       size: {cached?.size} max: {cached?.maxSize}
-      </h1>
+      </h1> */}
         <Home/>
     </div>
   )
