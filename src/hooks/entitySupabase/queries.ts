@@ -41,8 +41,6 @@ export const clientOptions = {
   // Pagination standard
   paginated: buildClient<User>(undefined, undefined, { page: 1, limit: 20 }),
   
-
-  
   // Combinaison tri + pagination
   listView: buildClient<User>(
     undefined,
