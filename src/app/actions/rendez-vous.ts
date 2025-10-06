@@ -3,6 +3,7 @@
 import { getUserInfo } from '@/services/users'
 import { obtenirSpecialiteMedecin } from '@/app/actions/medecin'
 import { revalidatePath } from 'next/cache'
+import { prisma } from '@/lib/prisma'
 
 export interface RendezVous {
   id: string
@@ -62,17 +63,48 @@ export async function obtenirRendezVousMedecin() {
         date: { gte: new Date() }
       },
       include: {
-        patient: true
+        patient: {
+          include: {
+            utilisateur: true
+          }
+        }
       },
       orderBy: { date: 'asc' }
     })
 
-    // Pour l'instant, retourner des données vides
-    // const rendezVous: RendezVous[] = []
+    // Transformer les données pour correspondre à l'interface RendezVous
+    const transformedRendezVous: RendezVous[] = rendezVous.map(rdv => ({
+      id: rdv.id,
+      patient: {
+        id: rdv.patient.id,
+        nom: rdv.patient.utilisateur.nom,
+        prenom: rdv.patient.utilisateur.prenom || '',
+        telephone: rdv.patient.utilisateur.telephone || '',
+        email: rdv.patient.utilisateur.email,
+        adresse: rdv.patient.adresse,
+        groupeSanguin: rdv.patient.groupeSanguin,
+        poids: rdv.patient.poids,
+        taille: rdv.patient.taille,
+        sexe: rdv.patient.sexe,
+        userId: rdv.patient.userId
+      },
+      date: rdv.date.toISOString().split('T')[0],
+      heure: rdv.date.toTimeString().split(' ')[0].substring(0, 5),
+      duree: rdv.duree,
+      motif: rdv.motif || '',
+      statut: rdv.statut,
+      medecinId: rdv.medecinId,
+      specialiteId: specialiteResult.data?.id || '',
+      hopitalId: rdv.hopitalId,
+      utilisateurId: rdv.utilisateurId,
+      patientId: rdv.patientId,
+      createdAt: rdv.createdAt.toISOString(),
+      updatedAt: rdv.updatedAt.toISOString()
+    }))
 
     return {
       success: true,
-      data: rendezVous
+      data: transformedRendezVous
     }
     
   } catch (error) {

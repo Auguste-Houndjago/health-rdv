@@ -1,4 +1,5 @@
 import DisponibiliteForm from '@/components/medecin/DisponibiliteForm'
+import TestDisponibilite from '@/components/medecin/TestDisponibilite'
 import { getUserInfo } from '@/services/users'
 import { obtenirSpecialiteMedecin } from '@/app/actions/medecin'
 import { redirect } from 'next/navigation'
@@ -40,6 +41,11 @@ export default async function DisponibilitesPage() {
         medecinId={user.id}
         specialiteId={specialiteInfo?.id || ""}
       />
+      
+      {/* Composant de test pour vérifier la fonctionnalité */}
+      <div className="mt-8">
+        <TestDisponibilite />
+      </div>
     </div>
   )
 }
