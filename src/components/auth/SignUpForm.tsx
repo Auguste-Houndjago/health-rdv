@@ -48,7 +48,7 @@ export function SignUpForm({ onGoogleSignUp, role }: SignUpFormProps) {
   return (
     <>
       {/* Toaster Sonner */}
-      <Toaster position="top-right" />
+   
 
       <form className="space-y-5" action={formAction}>
         {/* Email */}
