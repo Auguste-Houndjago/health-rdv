@@ -16,13 +16,13 @@ import {
 } from 'lucide-react'
 
 interface HopitalPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export default async function HopitalPage({ params }: HopitalPageProps) {
-  const { slug } = params
+  const { slug } = await params
 
   try {
     // Récupérer l'hôpital par son slug
