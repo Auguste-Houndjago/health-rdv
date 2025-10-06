@@ -9,20 +9,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { RiUserLine, RiHeartLine, RiCalendarLine, RiPulseLine } from "@remixicon/react"
 
-export default function PatientsPage() {
-  const [activeTab, setActiveTab] = useState<"all" | "sexe" | "groupe" | "status">("all")
+export default function PatientsPage({ medecinId }: { medecinId: string }) {
+  const [activeTab, setActiveTab] = useState<"all" | "sexe">("all")
   const [sexeFilter, setSexeFilter] = useState<"all" | "Homme" | "Femme" | "Autre">("all")
-  const [groupeFilter, setGroupeFilter] = useState<string>("all")
-  const [statusFilter, setStatusFilter] = useState<"all" | "ACTIF" | "INACTIF" | "PENDING">("all")
   const [searchQuery, setSearchQuery] = useState("")
 
   // Construction des filtres basée sur l'état
   const filters = {
     sexe: activeTab === "sexe" ? sexeFilter : "all",
-    groupeSanguin: activeTab === "groupe" ? groupeFilter : "all",
-    status: activeTab === "status" ? statusFilter : "all",
     searchQuery: searchQuery.trim() || undefined,
-    medecinId: "current-medecin-id" // À remplacer par l'ID du médecin connecté
+    medecinId
   }
 
   // Utilisation du hook personnalisé
@@ -31,15 +27,30 @@ export default function PatientsPage() {
     sort: { key: "nom", order: "asc" }
   })
 
+  // Récents: 5 derniers patients par utilisateur.updatedAt
+  const recentPatients = [...data.items]
+    .sort((a, b) => new Date(b.utilisateur.updatedAt).getTime() - new Date(a.utilisateur.updatedAt).getTime())
+    .slice(0, 5)
+
+  // Rendez-vous aujourd'hui
+  const today = new Date()
+  today.setHours(0,0,0,0)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(today.getDate() + 1)
+  const todaysAppointments = data.items.filter(p =>
+    p.rendezVous?.some(r => {
+      const d = new Date(r.date)
+      return d >= today && d < tomorrow
+    })
+  )
+
   const handleTabChange = (value: string) => {
     const [type, val] = value.split(":")
-    setActiveTab(type as "all" | "sexe" | "groupe" | "status")
+    setActiveTab(type as "all" | "sexe")
     
     // Reset des sous-filtres quand on change de type
     if (type === "all") {
       setSexeFilter("all")
-      setGroupeFilter("all")
-      setStatusFilter("all")
       setSearchQuery("")
     }
   }
@@ -50,17 +61,7 @@ export default function PatientsPage() {
     setSearchQuery("")
   }
 
-  const handleGroupeFilter = (value: string) => {
-    setActiveTab("groupe")
-    setGroupeFilter(value)
-    setSearchQuery("")
-  }
-
-  const handleStatusFilter = (value: string) => {
-    setActiveTab("status")
-    setStatusFilter(value as "all" | "ACTIF" | "INACTIF" | "PENDING")
-    setSearchQuery("")
-  }
+  // Filtres groupe sanguin et statut retirés
 
   if (error) {
     return (
@@ -80,6 +81,49 @@ export default function PatientsPage() {
           <p className="text-muted-foreground mt-2">
             Gestion de vos patients et de leurs informations médicales
           </p>
+        </div>
+
+        {/* Récemment mis à jour */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">Récents</h2>
+          <div className="grid gap-2">
+            {recentPatients.map((p) => (
+              <div key={p.id} className="flex items-center justify-between rounded-md border p-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{p.utilisateur.prenom} {p.utilisateur.nom}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  Maj: {new Date(p.utilisateur.updatedAt).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
+            {recentPatients.length === 0 && (
+              <div className="text-sm text-muted-foreground">Aucun patient récent.</div>
+            )}
+          </div>
+        </div>
+
+        {/* Rendez-vous aujourd'hui */}
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">Rendez-vous aujourd'hui</h2>
+          <div className="grid gap-2">
+            {todaysAppointments.map((p) => (
+              <div key={p.id} className="flex items-center justify-between rounded-md border p-3">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{p.utilisateur.prenom} {p.utilisateur.nom}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {p.rendezVous?.find(r => {
+                    const d = new Date(r.date)
+                    return d >= today && d < tomorrow
+                  })?.heure || "Heure inconnue"}
+                </span>
+              </div>
+            ))}
+            {todaysAppointments.length === 0 && (
+              <div className="text-sm text-muted-foreground">Aucun rendez-vous aujourd'hui.</div>
+            )}
+          </div>
         </div>
 
         {/* Statistiques rapides */}
@@ -139,11 +183,9 @@ export default function PatientsPage() {
 
         {/* Onglets de filtrage */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="all">Tous</TabsTrigger>
             <TabsTrigger value="sexe">Par Sexe</TabsTrigger>
-            <TabsTrigger value="groupe">Par Groupe Sanguin</TabsTrigger>
-            <TabsTrigger value="status">Par Statut</TabsTrigger>
           </TabsList>
 
           <TabsContent value="sexe" className="space-y-4">
@@ -172,46 +214,7 @@ export default function PatientsPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="groupe" className="space-y-4">
-            <div className="flex gap-2 flex-wrap">
-              {Object.entries(stats.byGroupeSanguin).map(([groupe, count]: [string, number]) => (
-                <Badge 
-                  key={groupe}
-                  variant={groupeFilter === groupe ? "default" : "outline"}
-                  className="cursor-pointer"
-                  onClick={() => handleGroupeFilter(groupe)}
-                >
-                  {groupe} ({count})
-                </Badge>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="status" className="space-y-4">
-            <div className="flex gap-2">
-              <Badge 
-                variant={statusFilter === "ACTIF" ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => handleStatusFilter("ACTIF")}
-              >
-                Actifs ({stats.byStatus.ACTIF})
-              </Badge>
-              <Badge 
-                variant={statusFilter === "INACTIF" ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => handleStatusFilter("INACTIF")}
-              >
-                Inactifs ({stats.byStatus.INACTIF})
-              </Badge>
-              <Badge 
-                variant={statusFilter === "PENDING" ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => handleStatusFilter("PENDING")}
-              >
-                En attente ({stats.byStatus.PENDING})
-              </Badge>
-            </div>
-          </TabsContent>
+          {/* Filtres groupe sanguin et statut retirés */}
         </Tabs>
 
         <div className="space-y-4">

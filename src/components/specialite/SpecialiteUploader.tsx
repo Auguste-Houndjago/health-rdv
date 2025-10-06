@@ -11,6 +11,7 @@ interface SpecialiteUploaderProps {
   size?: number;
   className?: string;
   onImageUpdate?: (imageUrl: string) => void;
+  details?: boolean;
 }
 
 export default function SpecialiteUploader({ 
@@ -18,12 +19,12 @@ export default function SpecialiteUploader({
   initialImageUrl, 
   size = 120,
   className = "",
-  onImageUpdate
+  onImageUpdate,
+  details = true,
 }: SpecialiteUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { imageUrl, uploading, uploadSpecialiteImage, imageKey } = useSpecialiteUploader();
 
-  // Utiliser l'URL initiale ou l'URL uploadée
   const currentImageUrl = imageUrl || initialImageUrl;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,8 +35,6 @@ export default function SpecialiteUploader({
         onImageUpdate(newImageUrl);
       }
     }
-    
-    // Reset l'input pour permettre de sélectionner le même fichier à nouveau
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -49,11 +48,8 @@ export default function SpecialiteUploader({
     <div className={`flex flex-col items-center gap-3 ${className}`}>
       <div
         onClick={handleClick}
-        className="group relative cursor-pointer overflow-hidden rounded-xl border-2 border-dashed border-gray-300 transition-all hover:border-[#1cb0ff] hover:bg-gray-50"
-        style={{ 
-          width: size, 
-          height: size 
-        }}
+        className="group relative cursor-pointer overflow-hidden rounded-xl border-2  border-gray-300 transition-all hover:border-[#1cb0ff] hover:bg-gray-50"
+        style={{ width: size, height: size }}
       >
         {currentImageUrl ? (
           <Image
@@ -80,16 +76,14 @@ export default function SpecialiteUploader({
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" 
               />
             </svg>
-            <span className="text-xs text-center px-2">Ajouter une image</span>
+           
           </div>
         )}
-        
-        {/* Overlay au hover */}
+
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 text-xs text-transparent transition-all group-hover:bg-black/20 group-hover:text-white">
           {currentImageUrl ? "Modifier" : "Ajouter"}
         </div>
-        
-        {/* Indicateur de chargement */}
+
         {uploading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
             <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
@@ -109,15 +103,18 @@ export default function SpecialiteUploader({
       {uploading && (
         <p className="text-xs text-blue-600 animate-pulse">Téléversement en cours...</p>
       )}
-      
-      <div className="text-center">
-        <p className="text-xs text-gray-500">
-          PNG, JPEG, WebP, SVG
-        </p>
-        <p className="text-xs text-gray-400">
-          max. 5MB
-        </p>
-      </div>
+
+   
+      {details && (
+        <div className="text-center">
+          <p className="text-xs text-gray-500">
+            PNG, JPEG, WebP, SVG
+          </p>
+          <p className="text-xs text-gray-400">
+            max. 5MB
+          </p>
+        </div>
+      )}
     </div>
   );
 }

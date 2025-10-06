@@ -1,6 +1,6 @@
 // hooks/specialites/useSpecialiteForm.ts
 import { useState } from 'react';
-import { useCreateSpecialite } from './useCreateSpecialite';
+import { useSpecialites } from './useSpecialites';
 
 export interface SpecialiteFormData {
   nom: string;
@@ -19,7 +19,7 @@ export function useSpecialiteForm() {
   });
   
   const [errors, setErrors] = useState<SpecialiteFormErrors>({});
-  const { mutate: createSpecialite, isPending } = useCreateSpecialite();
+  const { createSpecialite, createSpecialitePending } = useSpecialites();
 
   const handleChange = (name: keyof SpecialiteFormData, value: string) => {
     setFormData(prev => ({
@@ -61,12 +61,14 @@ export function useSpecialiteForm() {
     createSpecialite({
       nom: formData.nom.trim(),
       description: formData.description.trim() || undefined,
-    }, {
-      onSuccess: () => {
+    })
+      .then(() => {
         resetForm();
         onSuccess?.();
-      },
-    });
+      })
+      .catch(() => {
+        // Les erreurs sont déjà gérées par le hook via toast
+      });
 
     return true;
   };
@@ -82,7 +84,7 @@ export function useSpecialiteForm() {
   return {
     formData,
     errors,
-    isPending,
+    isPending: createSpecialitePending,
     handleChange,
     handleSubmit,
     resetForm,

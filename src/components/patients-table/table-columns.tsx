@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { MoreHorizontal, Eye, Edit, Trash2 } from "@remixicon/react"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +17,7 @@ import {
 import type { PatientWithUser } from "./types"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
+import { Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react"
 
 interface TableColumnsProps {
   data: PatientWithUser[]

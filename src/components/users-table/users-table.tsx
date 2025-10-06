@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination"
@@ -20,12 +20,11 @@ import {
 import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react"
 import { cn } from "@/lib/utils"
 import type { UsersWithRole } from "./types"
-import { mockUsers } from "./mock-data"
+
 import { getColumns } from "./table-columns"
 import { TableFilters } from "./table-filters"
-import { useUsers } from "@/hooks/users/useUsers"
 
-export default function UsersTable({users=null}:{users:UsersWithRole[]}) {
+export default function UsersTable({users}:{users:UsersWithRole[]}) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [pagination, setPagination] = useState<PaginationState>({
@@ -43,6 +42,10 @@ export default function UsersTable({users=null}:{users:UsersWithRole[]}) {
 
 
   const [data, setData] = useState<UsersWithRole[]>(users)
+  // Keep local data in sync with incoming props
+  useEffect(() => {
+    setData(users || [])
+  }, [users])
   const [isLoading] = useState(false)
 
   const columns = useMemo(() => getColumns({ data, setData }), [data])
@@ -55,7 +58,7 @@ export default function UsersTable({users=null}:{users:UsersWithRole[]}) {
   }
 
   const table = useReactTable({
-    data,
+    data: data ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

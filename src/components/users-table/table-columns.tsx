@@ -1,4 +1,5 @@
 import type React from "react"
+import type { CheckedState } from "@radix-ui/react-checkbox"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -16,13 +17,21 @@ interface GetColumnsProps {
 export const getColumns = ({ data, setData }: GetColumnsProps): ColumnDef<UsersWithRole>[] => [
   {
     id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
+    header: ({ table }) => {
+      const headerChecked: CheckedState = table.getIsAllPageRowsSelected()
+        ? true
+        : table.getIsSomePageRowsSelected()
+          ? "indeterminate"
+          : false
+
+      return (
+        <Checkbox
+          checked={headerChecked}
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      )
+    },
     cell: ({ row }) => (
       <Checkbox
         checked={row.getIsSelected()}

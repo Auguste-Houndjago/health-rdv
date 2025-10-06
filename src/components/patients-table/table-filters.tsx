@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { X, Filter, Trash2 } from "@remixicon/react"
+import { X, Filter, Trash2 } from "lucide-react"
 import type { Table } from "@tanstack/react-table"
 import type { PatientWithUser } from "./types"
 
