@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-export default function Component() {
+export default function OptionModal() {
   return (
     <Dialog>
       <DialogTrigger asChild>

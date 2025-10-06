@@ -1,11 +1,8 @@
-// @/app/users/page.tsx
+// src/components/admin/users/UserPage.tsx
 "use client"
 
 import UsersTable from "@/components/users-table/users-table"
 import { useState } from "react"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Search, User } from "lucide-react"
 import { useUsers } from "@/hooks/users/useUsers"
 
 export default function UsersPage() {
@@ -88,46 +85,7 @@ export default function UsersPage() {
         </div>
 
         <div className="space-y-4">
-          <Tabs defaultValue="all:all" onValueChange={handleTabChange}>
-            <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
-              <TabsTrigger value="all:all">Tous</TabsTrigger>
-              <TabsTrigger value="role:all">Par Rôle</TabsTrigger>
-              <TabsTrigger value="sex:all">Par Sexe</TabsTrigger>
-            </TabsList>
 
-            <TabsContent value="all:all" className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher par nom, prénom, email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="role:all" className="space-y-4">
-              <Tabs defaultValue="all" onValueChange={handleRoleFilter}>
-                <TabsList>
-                  <TabsTrigger value="all">Tous les rôles</TabsTrigger>
-                  <TabsTrigger value="ADMIN">Admin</TabsTrigger>
-                  <TabsTrigger value="MEDECIN">Médecin</TabsTrigger>
-                  <TabsTrigger value="PATIENT">Patient</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </TabsContent>
-
-            <TabsContent value="sex:all" className="space-y-4">
-              <Tabs defaultValue="all" onValueChange={handleSexFilter}>
-                <TabsList>
-                  <TabsTrigger value="all">Tous</TabsTrigger>
-                  <TabsTrigger value="Homme">Homme</TabsTrigger>
-                  <TabsTrigger value="Femme">Femme</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </TabsContent>
-          </Tabs>
 
           <div className="flex justify-between items-center">
             <div className="text-sm text-muted-foreground">
@@ -144,7 +102,6 @@ export default function UsersPage() {
           </div>
         </div>
             <UsersTable users={data.items} />
-        {/* <UsersTable users={data.items} /> */}
       </div>
     </div>
   )

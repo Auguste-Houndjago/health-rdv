@@ -1,5 +1,7 @@
 "use server"
 import PatientSidebar from '@/components/patient/PatientSidebar';
+import UserHeader from '@/components/user/UserHeader';
+import { getUserInfo } from '@/services/users';
 
 export default async function PatientLayout({
   children,
@@ -7,6 +9,7 @@ export default async function PatientLayout({
   children: React.ReactNode
 }) {
 
+  const user = await getUserInfo()
   console.log("PATIEN LAYOUT")
   
   return (
@@ -15,6 +18,7 @@ export default async function PatientLayout({
         <PatientSidebar />
       </div>
       <main className="flex-1 overflow-auto p-6">
+        <UserHeader avatarUrl={user?.avatar_url} name={user?.nom} />
         {children}
       </main>
     </div>

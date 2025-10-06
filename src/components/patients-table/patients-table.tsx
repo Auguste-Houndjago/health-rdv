@@ -19,13 +19,16 @@ import {
 } from "@tanstack/react-table"
 import { RiArrowDownSLine, RiArrowUpSLine } from "@remixicon/react"
 import { cn } from "@/lib/utils"
-import type { UsersWithRole } from "./types"
-import { mockUsers } from "./mock-data"
+import type { PatientWithUser } from "./types"
 import { getColumns } from "./table-columns"
 import { TableFilters } from "./table-filters"
-import { useUsers } from "@/hooks/users/useUsers"
 
-export default function UsersTable({users=null}:{users:UsersWithRole[]}) {
+interface PatientsTableProps {
+  patients: PatientWithUser[]
+  isLoading?: boolean
+}
+
+export default function PatientsTable({ patients, isLoading = false }: PatientsTableProps) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [pagination, setPagination] = useState<PaginationState>({
@@ -35,15 +38,12 @@ export default function UsersTable({users=null}:{users:UsersWithRole[]}) {
 
   const [sorting, setSorting] = useState<SortingState>([
     {
-      id: "nom",
+      id: "utilisateur",
       desc: false,
     },
   ])
 
-
-
-  const [data, setData] = useState<UsersWithRole[]>(users)
-  const [isLoading] = useState(false)
+  const [data, setData] = useState<PatientWithUser[]>(patients)
 
   const columns = useMemo(() => getColumns({ data, setData }), [data])
 
@@ -146,7 +146,7 @@ export default function UsersTable({users=null}:{users:UsersWithRole[]}) {
           ) : (
             <TableRow className="hover:bg-transparent [&:first-child>td:first-child]:rounded-tl-lg [&:first-child>td:last-child]:rounded-tr-lg [&:last-child>td:first-child]:rounded-bl-lg [&:last-child>td:last-child]:rounded-br-lg">
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                Aucun résultat.
+                Aucun patient trouvé.
               </TableCell>
             </TableRow>
           )}

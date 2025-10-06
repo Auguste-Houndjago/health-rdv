@@ -151,8 +151,12 @@ model Specialite {
   nom         String
   image       String?
   description String?
+
   medecins    Medecin[]
   hopitaux    Hopital[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 /// =========================
