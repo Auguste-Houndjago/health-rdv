@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,41 +23,85 @@ import {
   Zap,
   Download,
   Filter,
-  RefreshCw
+  RefreshCw,
+  Loader2
 } from "lucide-react";
+import { toast } from "sonner";
+import { 
+  obtenirStatistiquesAvancees,
+  type StatistiquesGenerales,
+  type ConsultationParMois,
+  type ClassificationMaladie,
+  type Tendances
+} from "@/app/actions/statistiques";
 
 export default function StatistiquesPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("30j");
   const [selectedSpecialite, setSelectedSpecialite] = useState("all");
   const [activeTab, setActiveTab] = useState("overview");
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<StatistiquesGenerales>({
+    totalPatients: 0,
+    nouveauxPatients: 0,
+    consultationsMois: 0,
+    revenusMois: 0,
+    evolutionPatients: 0,
+    evolutionConsultations: 0,
+    evolutionRevenus: 0
+  });
+  const [consultationsParMois, setConsultationsParMois] = useState<ConsultationParMois[]>([]);
+  const [classificationMaladies, setClassificationMaladies] = useState<ClassificationMaladie[]>([]);
+  const [tendances, setTendances] = useState<Tendances>({
+    nouveauxPatients: 0,
+    rdvSemaine: 0,
+    patientsActifs: 0,
+    enAttente: 0
+  });
 
-  // Données simulées - à remplacer par des hooks réels
-  const stats = {
-    totalPatients: 156,
-    nouveauxPatients: 12,
-    consultationsMois: 89,
-    revenusMois: 12450,
-    evolutionPatients: 8.5,
-    evolutionConsultations: -2.3,
-    evolutionRevenus: 12.1
+  // Charger les données au montage du composant
+  useEffect(() => {
+    chargerDonnees();
+  }, []);
+
+  const chargerDonnees = async () => {
+    setLoading(true);
+    try {
+      const result = await obtenirStatistiquesAvancees();
+
+      if (result.success) {
+        setStats(result.data.generales || stats);
+        setConsultationsParMois(result.data.consultationsParMois || []);
+        setClassificationMaladies(result.data.classificationMaladies || []);
+        setTendances(result.data.tendances || tendances);
+      } else {
+        toast.error(result.error || "Erreur lors du chargement des statistiques");
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des données:", error);
+      toast.error("Erreur lors du chargement des données");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const consultationsParMois = [
-    { mois: "Jan", consultations: 45, revenus: 8500 },
-    { mois: "Fév", consultations: 52, revenus: 9200 },
-    { mois: "Mar", consultations: 48, revenus: 8800 },
-    { mois: "Avr", consultations: 61, revenus: 10200 },
-    { mois: "Mai", consultations: 55, revenus: 9600 },
-    { mois: "Juin", consultations: 67, revenus: 11200 }
-  ];
+  const handleRefresh = () => {
+    chargerDonnees();
+  };
 
-  const pathologiesFrequentes = [
-    { pathologie: "Hypertension", patients: 45, pourcentage: 28.8 },
-    { pathologie: "Diabète Type 2", patients: 32, pourcentage: 20.5 },
-    { pathologie: "Arythmie", patients: 28, pourcentage: 17.9 },
-    { pathologie: "Cardiomyopathie", patients: 18, pourcentage: 11.5 },
-    { pathologie: "Autres", patients: 33, pourcentage: 21.3 }
-  ];
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Chargement des statistiques...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Les données sont maintenant chargées via les server actions
 
   const consultationsParJour = [
     { jour: "Lun", consultations: 8 },

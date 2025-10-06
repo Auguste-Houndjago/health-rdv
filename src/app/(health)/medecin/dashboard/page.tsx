@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,31 +17,90 @@ import {
   CheckCircle,
   AlertCircle,
   Activity,
-  BarChart3
+  BarChart3,
+  Loader2,
+  RefreshCw
 } from "lucide-react";
+import { toast } from "sonner";
+import { 
+  obtenirDashboardMedecin,
+  obtenirPatientsRecents,
+  obtenirRendezVousAujourdhui,
+  obtenirStatistiquesAvancees,
+  type DashboardStats,
+  type PatientRecent,
+  type RendezVousAujourdhui
+} from "@/app/actions/dashboard";
 
 export default function MedecinDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
+  const [stats, setStats] = useState<DashboardStats>({
+    totalPatients: 0,
+    rendezVousAujourdhui: 0,
+    hopitauxAffilies: 0,
+    specialite: "Non spécifiée",
+    nouveauxPatients: 0,
+    consultationsMois: 0,
+    revenusMois: 0,
+    evolutionPatients: 0,
+    evolutionConsultations: 0,
+    evolutionRevenus: 0
+  });
+  const [patientsRecents, setPatientsRecents] = useState<PatientRecent[]>([]);
+  const [rendezVousAujourdhui, setRendezVousAujourdhui] = useState<RendezVousAujourdhui[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Données simulées - à remplacer par des hooks réels
-  const stats = {
-    totalPatients: 156,
-    rendezVousAujourdhui: 8,
-    hopitauxAffilies: 3,
-    specialite: "Cardiologie"
+  // Charger les données au montage du composant
+  useEffect(() => {
+    chargerDonnees();
+  }, []);
+
+  const chargerDonnees = async () => {
+    setLoading(true);
+    try {
+      const [statsResult, patientsResult, rdvResult] = await Promise.all([
+        obtenirDashboardMedecin(),
+        obtenirPatientsRecents(),
+        obtenirRendezVousAujourdhui()
+      ]);
+
+      if (statsResult.success) {
+        setStats(statsResult.data || stats);
+      } else {
+        toast.error(statsResult.error || "Erreur lors du chargement des statistiques");
+      }
+
+      if (patientsResult.success) {
+        setPatientsRecents(patientsResult.data || []);
+      }
+
+      if (rdvResult.success) {
+        setRendezVousAujourdhui(rdvResult.data || []);
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des données:", error);
+      toast.error("Erreur lors du chargement des données");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const patientsRecents = [
-    { id: "1", nom: "Dupont", prenom: "Jean", maladie: "Hypertension", derniereVisite: "2024-01-15" },
-    { id: "2", nom: "Martin", prenom: "Marie", maladie: "Diabète", derniereVisite: "2024-01-14" },
-    { id: "3", nom: "Bernard", prenom: "Pierre", maladie: "Arythmie", derniereVisite: "2024-01-13" },
-  ];
+  const handleRefresh = () => {
+    chargerDonnees();
+  };
 
-  const rendezVousAujourdhui = [
-    { id: "1", patient: "Jean Dupont", heure: "09:00", motif: "Consultation de routine" },
-    { id: "2", patient: "Marie Martin", heure: "10:30", motif: "Suivi diabète" },
-    { id: "3", patient: "Pierre Bernard", heure: "14:00", motif: "Contrôle tension" },
-  ];
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Chargement du dashboard...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -54,6 +113,10 @@ export default function MedecinDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Actualiser
+          </Button>
           <Button variant="outline">
             <Activity className="h-4 w-4 mr-2" />
             Activité
