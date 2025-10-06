@@ -7,18 +7,17 @@ export default async function PatientLayout({
 }: {
   children: React.ReactNode
 }) {
-
   console.log("PATIENT LAYOUT")
-  
-  return (
-    <div className="flex h-screen bg-background">
 
-<div className="flex h-screen ">
-        <AdminSidebar />
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
-      </div>
+  return (
+    <div className="flex h-screen w-screen bg-background">
+      {/* Sidebar à gauche */}
+      <AdminSidebar />
+
+      {/* Main qui prend le reste de la largeur */}
+      <main className="flex-1 flex flex-col  overflow-auto">
+        {children}
+      </main>
     </div>
   )
 }

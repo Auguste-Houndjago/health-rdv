@@ -1,58 +1,108 @@
 // src/hooks/entitySupabase/types.ts
 
+import { Database } from "@/types/database";
 import { UseQueryOptions } from "@tanstack/react-query";
 
+// Types de base pour Supabase
+export type TableName = keyof Database['public']['Tables'];
+export type TableRow<T extends TableName> = Database['public']['Tables'][T]['Row'];
+export type TableData<T extends TableName> = TableRow<T> & { id: string };
+
 /**
- * @typedef {Object} FilterOperators
- * Opérateurs de filtrage supportés pour les requêtes
+ * Types pour la sélection avec jointures
  */
-export type FilterOperators<T> = {
-  /** Égalité stricte */
-  $eq?: T;
-  /** Non égalité */
-  $ne?: T;
-  /** Plus grand que */
-  $gt?: T extends number | Date ? T : never;
-  /** Plus grand ou égal */
-  $gte?: T extends number | Date ? T : never;
-  /** Plus petit que */
-  $lt?: T extends number | Date ? T : never;
-  /** Plus petit ou égal */
-  $lte?: T extends number | Date ? T : never;
-  /** Inclus dans la liste */
-  $in?: T[];
-  /** Non inclus dans la liste */
-  $notIn?: T[];
-  /** Contient la sous-chaîne */
-  $contains?: T extends string ? string : never;
-  /** Commence par */
-  $startsWith?: T extends string ? string : never;
-  /** Termine par */
-  $endsWith?: T extends string ? string : never;
-  /** Entre deux valeurs */
-  $between?: T extends number | Date ? [T, T] : never;
+
+// Type de base pour les champs de sélection
+export type SelectFields<T> = {
+  [K in keyof T]?: T[K] extends object 
+    ? SelectFields<T[K]> | boolean 
+    : boolean;
+};
+
+// Type utilitaire pour inférer le type résultat d'une sélection
+export type SelectResult<T, S> = 
+  S extends SelectFields<T>
+    ? {
+        [K in keyof S & keyof T]: 
+          S[K] extends true
+            ? T[K]
+            : S[K] extends object
+              ? SelectResult<T[K], S[K]>
+              : never;
+      }
+    : T; // Fallback vers le type complet si S est string
+
+/**
+ * Version simplifiée pour éviter les erreurs de récursion
+ */
+export type SimpleSelectResult<T, S> = T & {
+  // On garde la structure de base et on ajoute les relations
+  // Cette approche est moins précise mais évite les erreurs TypeScript
+  [K in keyof S as K extends keyof T ? never : K]?: any;
 };
 
 /**
- * @typedef {Object} WhereCondition
- * Condition de filtrage simple ou avec opérateurs
+ * Options avec support générique pour le select
  */
-export type WhereCondition<T> = T | FilterOperators<T>;
+export interface SupabaseQueryOptions<T, S = any> {
+  filters?: PartialDeep<T>;
+  select?: S | string;
+}
+
+export interface UseSupabaseDataOptions<T, S = any> {
+  query?: SupabaseQueryOptions<T, S>;
+  filterClient?: FilterClientOptions<SimpleSelectResult<T, S>>;
+  queryOptions?: Partial<UseQueryOptions<any, any, any, any>>;
+}
 
 /**
- * @typedef {Object} PartialDeep
- * Version partielle et profonde d'un type, supportant le filtrage nested
+ * Résultat avec type générique pour les données
  */
+export interface SupabaseDataResult<T> {
+  source: {
+    items: T[];
+    byId: Record<string, T>;
+  };
+  data: {
+    items: T[];
+    byId: Record<string, T>;
+  };
+  loading: boolean;
+  error: Error | null;
+  refetch: () => Promise<any>;
+  metadata: {
+    total: number;
+    filtered: number;
+    hasClientFilters: boolean;
+    page?: number;
+    totalPages?: number;
+  };
+}
+
+// Gardez les autres types existants (FilterOperators, WhereCondition, etc.)
+export type FilterOperators<T> = {
+  $eq?: T;
+  $ne?: T;
+  $gt?: T extends number | Date ? T : never;
+  $gte?: T extends number | Date ? T : never;
+  $lt?: T extends number | Date ? T : never;
+  $lte?: T extends number | Date ? T : never;
+  $in?: T[];
+  $notIn?: T[];
+  $contains?: T extends string ? string : never;
+  $startsWith?: T extends string ? string : never;
+  $endsWith?: T extends string ? string : never;
+  $between?: T extends number | Date ? [T, T] : never;
+};
+
+export type WhereCondition<T> = T | FilterOperators<T>;
+
 export type PartialDeep<T> = {
   [P in keyof T]?: T[P] extends object 
     ? PartialDeep<T[P]> 
     : WhereCondition<T[P]>;
 };
 
-/**
- * @typedef {string} Path
- * Chemin d'accès aux propriétés nested (ex: 'user.profile.name')
- */
 export type Path<T> = T extends object
   ? {
       [K in keyof T]: T[K] extends object 
@@ -61,97 +111,8 @@ export type Path<T> = T extends object
     }[keyof T]
   : never;
 
-/**
- * @typedef {Object} SelectFields
- * Structure pour la sélection typée des champs
- */
-export type SelectFields<T> = {
-  [K in keyof T]?: T[K] extends object 
-    ? SelectFields<T[K]> | boolean 
-    : boolean;
-};
-
-/**
- * @typedef {string} SelectString
- * String de sélection Supabase (compatibilité)
- */
-export type SelectString<T> = string;
-
-
-// Infère le type final à partir d'un objet select
-export type SelectToType<T, S> = {
-  [K in keyof S & keyof T]: S[K] extends true
-    ? T[K]
-    : S[K] extends object
-      ? SelectToType<T[K], S[K]>
-      : never;
-};
-
-
-/**
- * @interface SupabaseQueryOptions
- * Options pour les requêtes Supabase côté serveur
- */
-export interface SupabaseQueryOptions<T> {
-  /** Filtres à appliquer côté base de données */
-  filters?: PartialDeep<T>;
-  /** Sélection des champs (objet typé ou string) */
-  select?: SelectFields<T> | string;
-}
-
-/**
- * @interface FilterClientOptions
- * Options pour le traitement des données côté client
- */
 export interface FilterClientOptions<T> {
-  /** Filtres à appliquer côté client */
   where?: PartialDeep<T>;
-  /** Configuration du tri */
   sort?: { key: Path<T>; order: 'asc' | 'desc' };
-  /** Configuration de la pagination */
   paginate?: { page: number; limit: number };
-}
-
-/**
- * @interface UseSupabaseDataOptions
- * Options complètes pour le hook useEntitySupabase
- */
-export interface UseSupabaseDataOptions<T> {
-  /** Options de requête Supabase */
-  query?: SupabaseQueryOptions<T>;
-  /** Options de filtrage client */
-  filterClient?: FilterClientOptions<T>;
-  /** Options supplémentaires pour react-query */
-  queryOptions?: Partial<UseQueryOptions<any, any, any, any>>;
-}
-
-/**
- * @interface SupabaseDataResult
- * Résultat retourné par le hook useEntitySupabase
- */
-export interface SupabaseDataResult<T> {
-  /** Données brutes récupérées de Supabase */
-  source: {
-    items: T[];
-    byId: Record<string, T>;
-  };
-  /** Données après traitement client */
-  data: {
-    items: T[];
-    byId: Record<string, T>;
-  };
-  /** État de chargement */
-  loading: boolean;
-  /** Erreur éventuelle */
-  error: Error | null;
-  /** Fonction de rechargement */
-  refetch: () => Promise<any>;
-  /** Métadonnées sur les données */
-  metadata: {
-    total: number;
-    filtered: number;
-    hasClientFilters: boolean;
-    page?: number;
-    totalPages?: number;
-  };
 }

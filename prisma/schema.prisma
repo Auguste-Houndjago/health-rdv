@@ -20,6 +20,7 @@ model Utilisateur {
   telephone           String?
   avatarUrl          String?
   dateNaissance       DateTime?
+  role                Role                  @default(PATIENT)
   status              StatusUtilisateur    @default(ACTIF)
   administrateur      Administrateur?
   medecin             Medecin?
@@ -168,13 +169,12 @@ model UtilisateurHopital {
   id            String      @id @default(uuid())
   utilisateurId String
   hopitalId     String
-  role          Role
   dateDebut     DateTime    @default(now())
   dateFin       DateTime?
   hopital       Hopital     @relation(fields: [hopitalId], references: [id], onDelete: Cascade)
   utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
 
-  @@unique([utilisateurId, hopitalId, role])
+  @@unique([utilisateurId, hopitalId])
 }
 
 /// =========================

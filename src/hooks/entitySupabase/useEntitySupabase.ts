@@ -5,7 +5,10 @@ import { useMemo } from 'react';
 import { 
   UseSupabaseDataOptions, 
   SupabaseDataResult,
-  SelectFields
+  SelectFields,
+  SimpleSelectResult,
+  TableName,
+  TableData
 } from './types';
 import { 
   itemsToById, 
@@ -22,18 +25,10 @@ import { supabase } from '@/utils/supabase/client';
 import { PostgrestResponse } from '@supabase/supabase-js';
 import { buildSelectString } from './utils';
 
-type TableName = keyof Database['public']['Tables'];
-type TableRow<T extends TableName> = Database['public']['Tables'][T]['Row'];
-type TableData<T extends TableName> = TableRow<T> & { id: string };
-
 /**
  * Crée une requête typée vers Supabase
- * @param table - Nom de la table
- * @param select - Champs à sélectionner
- * @param filters - Filtres à appliquer
- * @returns Promise de la réponse Supabase
  */
-const createTypedQuery = <T extends TableName,  S extends SelectFields<TableData<T>> = SelectFields<TableData<T>>>(
+const createTypedQuery = <T extends TableName>(
   table: T,
   select?: string,
   filters?: Record<string, any>
@@ -41,42 +36,45 @@ const createTypedQuery = <T extends TableName,  S extends SelectFields<TableData
   return supabase
     .from(table)
     .select(select || '*')
-    .match(filters || {}) as unknown as Promise<PostgrestResponse<TableData<T>>>;
+    .match(filters || {}) as unknown as Promise<PostgrestResponse<any>>;
 };
 
 /**
- * Hook principal pour la gestion des données Supabase avec cache et filtres client
+ * Hook principal avec support des sélections typées
  * 
  * @example
  * ```tsx
- * const { source, data, loading, metadata } = useEntitySupabase('User', {
+ * // Sélection simple
+ * const { data } = useEntitySupabase('User', {
  *   query: {
- *     select: '*',
- *     filters: { status: 'active' }
- *   },
- *   filterClient: {
- *     where: { age: { $gt: 18 } },
- *     sort: { key: 'name', order: 'asc' },
- *     paginate: { page: 1, limit: 10 }
- *   },
- *   queryOptions: { staleTime: 1000 * 60 * 5 }
+ *     select: { id: true, firstName: true, email: true }
+ *   }
+ * });
+ * 
+ * // Sélection avec jointure (le typage sera inféré)
+ * const { data } = useEntitySupabase('UserOrganization', {
+ *   query: {
+ *     select: {
+ *       id: true,
+ *       role: true,
+ *       user: { id: true, firstName: true, email: true }
+ *     }
+ *   }
  * });
  * ```
- * 
- * @template T - Nom de la table dans la base de données
- * @param table - Nom de la table Supabase
- * @param options - Options de configuration
- * @returns Objet contenant les données, état et métadonnées
  */
-export const useEntitySupabase = <T extends TableName>(
+export const useEntitySupabase = <
+  T extends TableName,
+  S extends SelectFields<TableData<T>> | string = SelectFields<TableData<T>>
+>(
   table: T,
-  options: UseSupabaseDataOptions<TableData<T>> = {}
-): SupabaseDataResult<TableData<T>> => {
-  // Stabilisation des options pour éviter les re-rendus inutiles
+  options: UseSupabaseDataOptions<TableData<T>, S> = {}
+): SupabaseDataResult<SimpleSelectResult<TableData<T>, S>> => {
+  // Stabilisation des options
   const stableOptions = useDeepMemo(options);
   const { query = {}, filterClient = {}, queryOptions = {} } = stableOptions;
 
-  // Conversion du select typé en string Supabase
+  // Conversion du select en string
   const selectString = useMemo(() => {
     if (!query.select) return '*';
     
@@ -87,25 +85,28 @@ export const useEntitySupabase = <T extends TableName>(
     return buildSelectString(query.select as SelectFields<TableData<T>>);
   }, [query.select]);
 
-  // 1. Récupération des données via Supabase Cache Helpers
+  // 1. Récupération des données
   const supabaseQuery = useQuery(
     createTypedQuery(table, selectString, query.filters),
     queryOptions
   );
 
-  // 2. Transformation des données source en structure { items, byId }
+  // Type inféré pour les données
+  type ResultType = SimpleSelectResult<TableData<T>, S>;
+
+  // 2. Transformation des données source
   const sourceData = useMemo(() => {
     if (!supabaseQuery.data) return { items: [], byId: {} };
     
-    const items = supabaseQuery.data as TableData<T>[];
+    const items = supabaseQuery.data as ResultType[];
     return itemsToById(items);
   }, [supabaseQuery.data]);
 
   // 3. Préparation des fonctions de filtrage client
-  const clientFilterFn = useFilterFn<TableData<T>>(filterClient.where);
-  const clientSortFn = useSortFn<TableData<T>>(filterClient.sort);
+  const clientFilterFn = useFilterFn<ResultType>(filterClient.where);
+  const clientSortFn = useSortFn<ResultType>(filterClient.sort);
 
-  // 4. Application des transformations client (filtrage, tri, pagination)
+  // 4. Application des transformations client
   const processedData = useMemo(() => {
     let items = sourceData.items;
     
@@ -122,7 +123,7 @@ export const useEntitySupabase = <T extends TableName>(
     filterClient.paginate?.limit
   ]);
 
-  // 5. Calcul des métadonnées pour l'interface utilisateur
+  // 5. Métadonnées
   const metadata = useMemo(() => {
     const total = sourceData.items.length;
     const filtered = processedData.items.length;
