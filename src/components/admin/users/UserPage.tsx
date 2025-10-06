@@ -1,11 +1,11 @@
 // @/app/users/page.tsx
 "use client"
 
-import { UsersTable } from "@/components/users-table"
+import UsersTable from "@/components/users-table/users-table"
 import { useState } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
+import { Search, User } from "lucide-react"
 import { useUsers } from "@/hooks/users/useUsers"
 
 export default function UsersPage() {
@@ -143,8 +143,8 @@ export default function UsersPage() {
             )}
           </div>
         </div>
-
-        <UsersTable users={data.items} />
+            <UsersTable users={data.items} />
+        {/* <UsersTable users={data.items} /> */}
       </div>
     </div>
   )

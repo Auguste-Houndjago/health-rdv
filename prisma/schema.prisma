@@ -88,6 +88,7 @@ model Document {
   patientId    String?
   url          String
   patient      Patient? @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  recommandations Recommandation[]
 }
 
 /// =========================
@@ -120,6 +121,8 @@ model Hopital {
   nom                 String
   adresse             String
   description         String?
+  image               String?
+  url                 String?
   contact             String
   localisation        String?
   slug                String?              @unique
@@ -146,6 +149,7 @@ model MedecinHopital {
 model Specialite {
   id          String    @id @default(uuid())
   nom         String
+  image       String?
   description String?
   medecins    Medecin[]
   hopitaux    Hopital[]
@@ -157,9 +161,12 @@ model Specialite {
 model Recommandation {
   id        String   @id @default(uuid())
   contenu   String
+  file      String?
+  documentId  String?   
   medecinId String
   date      DateTime @default(now())
   medecin   Medecin  @relation(fields: [medecinId], references: [id], onDelete: Cascade)
+   document    Document?  @relation(fields: [documentId], references: [id], onDelete: SetNull)
 }
 
 /// =========================
