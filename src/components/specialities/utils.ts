@@ -21,7 +21,7 @@ type SpecialiterKeys = typeof files[number] extends `${infer Name}.svg` ? Name :
 // URL de base Supabase
 // https://otteaxtfcbgfwdnzqesc.supabase.co/storage/v1/object/public/specialite/
 
-const BASE_URL = "/";
+const BASE_URL = "/specialities/";
 // création de l'objet fortement typé
 export const specialiter: Record<SpecialiterKeys, string> = files.reduce((acc, file) => {
   const name = file.replace(".svg", "") as SpecialiterKeys;
