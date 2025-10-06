@@ -28,8 +28,6 @@ export default async function Page({
 
  return(
     <div>
-      <h1>Information {user?.email} {user?.nom} {user?.prenom} </h1>
-
       <div className="flex flex-col border-2 gap-8">
         <div className="flex flex-col  ">
         <VaporizeTextCycle color="#000000" texts={["Bienvenue", "A", "HEALTH - CARE"]} 
