@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -20,76 +20,144 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  Send
+  Send,
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
+import { useHopitaux } from "@/hooks/hopitaux/useHopitaux";
+import { 
+  obtenirHopitauxMedecin,
+  obtenirHopitauxDisponibles,
+  creerDemandeAffiliation,
+  obtenirDemandesAffiliation,
+  annulerDemandeAffiliation,
+  obtenirStatistiquesHopitaux,
+  type HopitalAffiliation,
+  type DemandeAffiliation
+} from "@/app/actions/medecin-hopitaux";
 
 export default function HopitauxPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showDemandeDialog, setShowDemandeDialog] = useState(false);
-  const [selectedHopital, setSelectedHopital] = useState<any>(null);
+  const [selectedHopital, setSelectedHopital] = useState<HopitalAffiliation | null>(null);
+  const [hopitaux, setHopitaux] = useState<HopitalAffiliation[]>([]);
+  const [hopitauxDisponibles, setHopitauxDisponibles] = useState<HopitalAffiliation[]>([]);
+  const [demandes, setDemandes] = useState<DemandeAffiliation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    hopitauxAffilies: 0,
+    demandesEnAttente: 0,
+    demandesApprouvees: 0,
+    demandesRejetees: 0
+  });
 
-  // Données simulées - à remplacer par des hooks réels
-  const hopitaux = [
-    {
-      id: "1",
-      nom: "Hôpital Central",
-      adresse: "123 Rue de la Santé, Paris",
-      contact: "01 23 45 67 89",
-      specialites: ["Cardiologie", "Neurologie", "Chirurgie"],
-      statutDemande: "APPROUVE",
-      dateAffiliation: "2024-01-15"
-    },
-    {
-      id: "2", 
-      nom: "Clinique Saint-Martin",
-      adresse: "456 Avenue des Médecins, Lyon",
-      contact: "04 12 34 56 78",
-      specialites: ["Cardiologie", "Pneumologie"],
-      statutDemande: "EN_ATTENTE",
-      dateAffiliation: null
-    },
-    {
-      id: "3",
-      nom: "Centre Hospitalier Nord",
-      adresse: "789 Boulevard de la Santé, Marseille",
-      contact: "04 98 76 54 32",
-      specialites: ["Cardiologie", "Endocrinologie", "Radiologie"],
-      statutDemande: "REJETE",
-      dateAffiliation: null
+  // Utiliser le hook useHopitaux pour les données des hôpitaux
+  const { hopitaux: hopitauxData, isLoading: hopitauxLoading, refetch: refetchHopitaux } = useHopitaux();
+
+  // Charger les données au montage du composant
+  useEffect(() => {
+    chargerDonnees();
+  }, []);
+
+  const chargerDonnees = async () => {
+    setLoading(true);
+    try {
+      const [hopitauxResult, hopitauxDisponiblesResult, demandesResult, statsResult] = await Promise.all([
+        obtenirHopitauxMedecin(),
+        obtenirHopitauxDisponibles(),
+        obtenirDemandesAffiliation(),
+        obtenirStatistiquesHopitaux()
+      ]);
+
+      if (hopitauxResult.success) {
+        setHopitaux(hopitauxResult.data || []);
+      } else {
+        toast.error(hopitauxResult.error || "Erreur lors du chargement des hôpitaux");
+      }
+
+      if (hopitauxDisponiblesResult.success) {
+        setHopitauxDisponibles(hopitauxDisponiblesResult.data || []);
+      }
+
+      if (demandesResult.success) {
+        setDemandes(demandesResult.data || []);
+      }
+
+      if (statsResult.success) {
+        setStats(statsResult.data || stats);
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des données:", error);
+      toast.error("Erreur lors du chargement des données");
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const hopitauxDisponibles = [
-    {
-      id: "4",
-      nom: "Hôpital Universitaire",
-      adresse: "321 Rue de l'Université, Toulouse",
-      contact: "05 12 34 56 78",
-      specialites: ["Cardiologie", "Neurologie", "Chirurgie cardiaque"],
-      description: "Hôpital universitaire de référence en cardiologie"
-    },
-    {
-      id: "5",
-      nom: "Institut du Cœur",
-      adresse: "654 Avenue du Cœur, Nice",
-      contact: "04 87 65 43 21",
-      specialites: ["Cardiologie", "Chirurgie cardiaque"],
-      description: "Spécialisé dans les pathologies cardiaques"
-    }
-  ];
+  const handleRefresh = () => {
+    chargerDonnees();
+    refetchHopitaux();
+  };
 
-  const handleDemandeAffiliation = (hopital: any) => {
+  const handleDemandeAffiliation = (hopital: HopitalAffiliation) => {
     setSelectedHopital(hopital);
     setShowDemandeDialog(true);
   };
 
-  const submitDemande = () => {
-    // Logique de soumission de la demande
-    toast.success(`Demande d'affiliation envoyée à ${selectedHopital.nom}`);
+  const submitDemande = async (formData: FormData) => {
+    if (!selectedHopital) return;
+
+    try {
+      const demandeData = new FormData();
+      demandeData.append('hopitalId', selectedHopital.id);
+      demandeData.append('motivation', formData.get('motivation') as string);
+      demandeData.append('specialitesInteret', formData.get('specialitesInteret') as string);
+      demandeData.append('disponibilite', formData.get('disponibilite') as string);
+
+      const result = await creerDemandeAffiliation(demandeData);
+
+      if (result.success) {
+        toast.success(result.message || `Demande d'affiliation envoyée à ${selectedHopital.nom}`);
     setShowDemandeDialog(false);
     setSelectedHopital(null);
+        chargerDonnees(); // Recharger les données
+      } else {
+        toast.error(result.error || "Erreur lors de l'envoi de la demande");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la soumission de la demande:", error);
+      toast.error("Erreur lors de la soumission de la demande");
+    }
   };
+
+  const handleAnnulerDemande = async (demandeId: string) => {
+    try {
+      const result = await annulerDemandeAffiliation(demandeId);
+      if (result.success) {
+        toast.success(result.message);
+        chargerDonnees(); // Recharger les données
+      } else {
+        toast.error(result.error || "Erreur lors de l'annulation");
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'annulation:", error);
+      toast.error("Erreur lors de l'annulation");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Chargement des hôpitaux...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const getStatutBadge = (statut: string) => {
     switch (statut) {
@@ -113,6 +181,12 @@ export default function HopitauxPage() {
           <p className="text-muted-foreground">
             Gérez vos affiliations hospitalières et vos demandes
           </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Actualiser
+          </Button>
         </div>
       </div>
 
@@ -249,25 +323,25 @@ export default function HopitauxPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {hopitaux.map((hopital) => (
-                <TableRow key={hopital.id}>
-                  <TableCell className="font-medium">{hopital.nom}</TableCell>
+              {demandes.map((demande) => (
+                <TableRow key={demande.id}>
+                  <TableCell className="font-medium">{demande.hopitalId}</TableCell>
                   <TableCell>
-                    {hopital.dateAffiliation || "En attente"}
+                    {new Date(demande.dateDemande).toLocaleDateString('fr-FR')}
                   </TableCell>
                   <TableCell>
-                    {getStatutBadge(hopital.statutDemande)}
+                    {getStatutBadge(demande.statut)}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {hopital.specialites.slice(0, 2).map((spec, index) => (
+                      {demande.specialitesInteret.split(',').slice(0, 2).map((spec, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
-                          {spec}
+                          {spec.trim()}
                         </Badge>
                       ))}
-                      {hopital.specialites.length > 2 && (
+                      {demande.specialitesInteret.split(',').length > 2 && (
                         <Badge variant="outline" className="text-xs">
-                          +{hopital.specialites.length - 2}
+                          +{demande.specialitesInteret.split(',').length - 2}
                         </Badge>
                       )}
                     </div>
@@ -277,7 +351,16 @@ export default function HopitauxPage() {
                       <Button variant="outline" size="sm">
                         Voir
                       </Button>
-                      {hopital.statutDemande === "REJETE" && (
+                      {demande.statut === "EN_ATTENTE" && (
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleAnnulerDemande(demande.id)}
+                        >
+                          Annuler
+                        </Button>
+                      )}
+                      {demande.statut === "REJETE" && (
                         <Button variant="outline" size="sm">
                           Refaire
                         </Button>
@@ -300,39 +383,49 @@ export default function HopitauxPage() {
               Demander une affiliation à {selectedHopital?.nom}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <form action={submitDemande} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="motivation">Motivation</Label>
               <Textarea
                 id="motivation"
+                name="motivation"
                 placeholder="Expliquez pourquoi vous souhaitez rejoindre cet hôpital..."
                 rows={4}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="specialites">Spécialités d'intérêt</Label>
+              <Label htmlFor="specialitesInteret">Spécialités d'intérêt</Label>
               <Input
-                id="specialites"
+                id="specialitesInteret"
+                name="specialitesInteret"
                 placeholder="Cardiologie, Chirurgie cardiaque..."
+                required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="disponibilite">Disponibilité</Label>
               <Input
                 id="disponibilite"
+                name="disponibilite"
                 placeholder="Lundi - Vendredi, 8h-18h"
+                required
               />
             </div>
             <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowDemandeDialog(false)}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowDemandeDialog(false)}
+              >
                 Annuler
               </Button>
-              <Button onClick={submitDemande}>
+              <Button type="submit">
                 <Send className="h-4 w-4 mr-2" />
                 Envoyer la demande
               </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
