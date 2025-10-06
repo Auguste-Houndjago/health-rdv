@@ -12,9 +12,10 @@ export default async function MedecinLayout({
 }) {
 
   const user = await getUserInfo()
-  if (!user?.medecin || user.role !== "MEDECIN") {
-    return redirect("/")
-  }
+  // if (!user?.medecin || user.role !== "MEDECIN") {
+  //   return redirect("/")
+  // }
+  
   
   
   return (
