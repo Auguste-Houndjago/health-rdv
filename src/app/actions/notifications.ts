@@ -14,6 +14,11 @@ export interface Notification {
   priorite: 'BASSE' | 'MOYENNE' | 'HAUTE' | 'URGENTE'
   action?: string
   url?: string
+  // Propriétés pour compatibilité avec l'interface existante
+  statut?: 'LU' | 'NON_LU'
+  date?: string
+  emetteur?: string
+  patient?: string
 }
 
 export async function obtenirNotificationsMedecin() {

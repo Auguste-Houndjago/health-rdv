@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
+
 import { 
   Bell, 
   Search, 
@@ -33,20 +33,128 @@ import {
   Activity,
   Trash2,
   Archive,
-  MarkAsRead,
-  MoreHorizontal
+  MoreHorizontal,
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
+import { 
+  obtenirNotificationsMedecin,
+  marquerNotificationLue,
+  marquerToutesNotificationsLues,
+  supprimerNotification,
+  obtenirStatistiquesNotifications,
+  type Notification
+} from "@/app/actions/notifications";
 
 export default function NotificationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showNotificationDialog, setShowNotificationDialog] = useState(false);
-  const [selectedNotification, setSelectedNotification] = useState<any>(null);
+  const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalNotifications: 0,
+    notificationsNonLues: 0,
+    notificationsUrgentes: 0
+  });
+
+  // Charger les données au montage du composant
+  useEffect(() => {
+    chargerDonnees();
+  }, []);
+
+  const chargerDonnees = async () => {
+    setLoading(true);
+    try {
+      const [notificationsResult, statsResult] = await Promise.all([
+        obtenirNotificationsMedecin(),
+        obtenirStatistiquesNotifications()
+      ]);
+
+      if (notificationsResult.success) {
+        setNotifications(notificationsResult.data || []);
+      } else {
+        toast.error(notificationsResult.error || "Erreur lors du chargement des notifications");
+      }
+
+      if (statsResult.success) {
+        setStats(statsResult.data || stats);
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des données:", error);
+      toast.error("Erreur lors du chargement des données");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    chargerDonnees();
+  };
+
+  const handleMarquerLue = async (notificationId: string) => {
+    try {
+      const result = await marquerNotificationLue(notificationId);
+      if (result.success) {
+        toast.success(result.message);
+        chargerDonnees();
+      } else {
+        toast.error(result.error || "Erreur lors de la mise à jour");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      toast.error("Erreur lors de la mise à jour");
+    }
+  };
+
+  const handleMarquerToutesLues = async () => {
+    try {
+      const result = await marquerToutesNotificationsLues();
+      if (result.success) {
+        toast.success(result.message);
+        chargerDonnees();
+      } else {
+        toast.error(result.error || "Erreur lors de la mise à jour");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      toast.error("Erreur lors de la mise à jour");
+    }
+  };
+
+  const handleSupprimer = async (notificationId: string) => {
+    try {
+      const result = await supprimerNotification(notificationId);
+      if (result.success) {
+        toast.success(result.message);
+        chargerDonnees();
+      } else {
+        toast.error(result.error || "Erreur lors de la suppression");
+      }
+    } catch (error) {
+      console.error("Erreur:", error);
+      toast.error("Erreur lors de la suppression");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Chargement des notifications...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Données simulées - à remplacer par des hooks réels
-  const notifications = [
+  const notificationsMock = [
     {
       id: "1",
       titre: "Nouveau rendez-vous confirmé",
@@ -126,18 +234,22 @@ export default function NotificationsPage() {
                          notification.message.toLowerCase().includes(searchQuery.toLowerCase());
     
     if (activeTab === "all") return matchesSearch;
-    if (activeTab === "unread") return matchesSearch && notification.statut === "NON_LU";
-    if (activeTab === "urgent") return matchesSearch && notification.priorite === "CRITIQUE";
-    if (activeTab === "appointments") return matchesSearch && notification.type === "RENDEZ_VOUS";
-    if (activeTab === "reports") return matchesSearch && notification.type === "RAPPORT";
-    if (activeTab === "system") return matchesSearch && notification.type === "SYSTEME";
+    if (activeTab === "unread") return matchesSearch && !notification.lue;
+    if (activeTab === "urgent") return matchesSearch && notification.priorite === "URGENTE";
+    if (activeTab === "appointments") return matchesSearch && notification.type === "INFO";
+    if (activeTab === "reports") return matchesSearch && notification.type === "WARNING";
+    if (activeTab === "system") return matchesSearch && notification.type === "ERROR";
     
     return matchesSearch;
   });
 
-  const handleViewNotification = (notification: any) => {
+  const handleViewNotification = (notification: Notification) => {
     setSelectedNotification(notification);
     setShowNotificationDialog(true);
+    // Marquer comme lue automatiquement
+    if (!notification.lue) {
+      handleMarquerLue(notification.id);
+    }
   };
 
   const getTypeIcon = (type: string) => {
@@ -200,14 +312,7 @@ export default function NotificationsPage() {
     }
   };
 
-  const stats = {
-    totalNotifications: notifications.length,
-    notificationsNonLues: notifications.filter(n => n.statut === "NON_LU").length,
-    notificationsUrgentes: notifications.filter(n => n.priorite === "CRITIQUE").length,
-    notificationsAujourdhui: notifications.filter(n => 
-      new Date(n.date).toDateString() === new Date().toDateString()
-    ).length
-  };
+  // Les statistiques sont maintenant chargées via les server actions
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -220,12 +325,16 @@ export default function NotificationsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Actualiser
+          </Button>
           <Button variant="outline" onClick={() => setShowSettingsDialog(true)}>
             <Settings className="h-4 w-4 mr-2" />
             Paramètres
           </Button>
-          <Button variant="outline">
-            <MarkAsRead className="h-4 w-4 mr-2" />
+          <Button variant="outline" onClick={handleMarquerToutesLues}>
+            <CheckCircle className="h-4 w-4 mr-2" />
             Marquer tout lu
           </Button>
           <Button>
@@ -282,7 +391,9 @@ export default function NotificationsPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.notificationsAujourdhui}</div>
+            <div className="text-2xl font-bold">{notifications.filter(n => 
+              new Date(n.dateCreation).toDateString() === new Date().toDateString()
+            ).length}</div>
             <p className="text-xs text-muted-foreground">
               Reçues aujourd'hui
             </p>
@@ -337,13 +448,13 @@ export default function NotificationsPage() {
                   <div 
                     key={notification.id} 
                     className={`p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer ${
-                      notification.statut === "NON_LU" ? "bg-blue-50 border-blue-200" : ""
+                      !notification.lue ? "bg-blue-50 border-blue-200" : ""
                     }`}
                     onClick={() => handleViewNotification(notification)}
                   >
                     <div className="flex items-start space-x-4">
                       <div className="flex items-center space-x-2">
-                        {getStatutIcon(notification.statut)}
+                        {getStatutIcon(notification.lue ? 'LU' : 'NON_LU')}
                         {getTypeIcon(notification.type)}
                       </div>
                       <div className="flex-1">
@@ -352,7 +463,7 @@ export default function NotificationsPage() {
                           <div className="flex items-center space-x-2">
                             {getPrioriteBadge(notification.priorite)}
                             <span className="text-xs text-muted-foreground">
-                              {new Date(notification.date).toLocaleDateString('fr-FR')}
+                              {new Date(notification.dateCreation).toLocaleDateString('fr-FR')}
                             </span>
                           </div>
                         </div>
@@ -362,14 +473,37 @@ export default function NotificationsPage() {
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                             <span>Type: {getTypeLabel(notification.type)}</span>
-                            <span>De: {notification.emetteur}</span>
+                            <span>De: {notification.emetteur || 'Système'}</span>
                             {notification.patient && (
                               <span>Patient: {notification.patient}</span>
                             )}
                           </div>
-                          <Button variant="ghost" size="sm">
-                            {notification.action}
-                          </Button>
+                          <div className="flex items-center space-x-2">
+                            {!notification.lue && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMarquerLue(notification.id);
+                                }}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                Marquer lu
+                              </Button>
+                            )}
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSupprimer(notification.id);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Supprimer
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -401,7 +535,7 @@ export default function NotificationsPage() {
                     {selectedNotification.titre}
                   </h3>
                   <p className="text-muted-foreground">
-                    {new Date(selectedNotification.date).toLocaleString('fr-FR')}
+                    {new Date(selectedNotification.dateCreation).toLocaleString('fr-FR')}
                   </p>
                   <div className="flex items-center space-x-2 mt-2">
                     {getPrioriteBadge(selectedNotification.priorite)}
@@ -422,7 +556,7 @@ export default function NotificationsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm font-medium">Émetteur</Label>
-                  <p className="text-sm">{selectedNotification.emetteur}</p>
+                  <p className="text-sm">{selectedNotification.emetteur || 'Système'}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Priorité</Label>
@@ -436,7 +570,7 @@ export default function NotificationsPage() {
                 )}
                 <div>
                   <Label className="text-sm font-medium">Statut</Label>
-                  <p className="text-sm">{selectedNotification.statut}</p>
+                  <p className="text-sm">{selectedNotification.lue ? 'LU' : 'NON_LU'}</p>
                 </div>
               </div>
 
@@ -444,14 +578,19 @@ export default function NotificationsPage() {
                 <Button variant="outline" onClick={() => setShowNotificationDialog(false)}>
                   Fermer
                 </Button>
-                <Button variant="outline">
-                  <Archive className="h-4 w-4 mr-2" />
-                  Archiver
+                <Button 
+                  variant="outline"
+                  onClick={() => handleSupprimer(selectedNotification.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Supprimer
                 </Button>
-                <Button>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Marquer comme lu
-                </Button>
+                {!selectedNotification.lue && (
+                  <Button onClick={() => handleMarquerLue(selectedNotification.id)}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Marquer comme lu
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -476,7 +615,7 @@ export default function NotificationsPage() {
                     Recevoir les notifications par email
                   </p>
                 </div>
-                <Switch defaultChecked />
+               
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -485,7 +624,7 @@ export default function NotificationsPage() {
                     Recevoir les notifications push
                   </p>
                 </div>
-                <Switch defaultChecked />
+             
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -494,7 +633,7 @@ export default function NotificationsPage() {
                     Recevoir des rappels pour les RDV
                   </p>
                 </div>
-                <Switch defaultChecked />
+           
               </div>
               <div className="flex items-center justify-between">
                 <div>
@@ -503,7 +642,7 @@ export default function NotificationsPage() {
                     Recevoir les notifications critiques
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <input type="checkbox" defaultChecked className="rounded" />
               </div>
             </div>
 
