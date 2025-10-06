@@ -16,8 +16,6 @@ export default async function MedecinLayout({
     return redirect("/")
   }
   
-
-
   
   return (
     <div className="flex h-screen bg-background">
