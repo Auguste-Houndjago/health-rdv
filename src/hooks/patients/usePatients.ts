@@ -1,3 +1,4 @@
+"use client";
 import { useEntityFilter } from "@/hooks/entity/useEntityFilter";
 import { getPatientsByMedecin, PatientByMedecinPayload } from "@/services/patients/actions";
 import { useMemo } from "react";
