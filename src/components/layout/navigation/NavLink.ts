@@ -26,7 +26,7 @@ export const navLinks: NavLink[] = [
   {
     id: 'about',
     label: 'À propos',
-    href: '#about'
+    href: '/medecin'
   },
   {
     id: 'contact',
