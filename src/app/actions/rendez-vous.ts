@@ -7,10 +7,17 @@ import { revalidatePath } from 'next/cache'
 export interface RendezVous {
   id: string
   patient: {
+    id: string
     nom: string
     prenom: string
     telephone: string
     email: string
+    adresse?: string
+    groupeSanguin?: string
+    poids?: number
+    taille?: number
+    sexe?: string
+    userId: string
   }
   date: string
   heure: string
@@ -20,6 +27,11 @@ export interface RendezVous {
   notes?: string
   medecinId: string
   specialiteId: string
+  hopitalId?: string
+  utilisateurId?: string
+  patientId?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export async function obtenirRendezVousMedecin() {
@@ -44,19 +56,19 @@ export async function obtenirRendezVousMedecin() {
     }
 
     // Ici vous pouvez ajouter la logique pour récupérer les rendez-vous depuis la base de données
-    // const rendezVous = await prisma.rendezVous.findMany({
-    //   where: { 
-    //     medecinId: user.id,
-    //     date: { gte: new Date() }
-    //   },
-    //   include: {
-    //     patient: true
-    //   },
-    //   orderBy: { date: 'asc' }
-    // })
+    const rendezVous = await prisma.rendezVous.findMany({
+      where: { 
+        medecinId: user.id,
+        date: { gte: new Date() }
+      },
+      include: {
+        patient: true
+      },
+      orderBy: { date: 'asc' }
+    })
 
     // Pour l'instant, retourner des données vides
-    const rendezVous: RendezVous[] = []
+    // const rendezVous: RendezVous[] = []
 
     return {
       success: true,
