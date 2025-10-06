@@ -337,24 +337,7 @@ export default function StatistiquesPage() {
                 <CardDescription>Répartition des pathologies</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {pathologiesFrequentes.map((pathologie, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{pathologie.pathologie}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {pathologie.patients} patients ({pathologie.pourcentage}%)
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${pathologie.pourcentage}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+ 
               </CardContent>
             </Card>
 
