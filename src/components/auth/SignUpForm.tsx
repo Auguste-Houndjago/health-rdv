@@ -1,6 +1,8 @@
 // src/components/SignUpForm.tsx (Composant Client)
 "use client";
 
+import { Toaster, toast } from "sonner";
+import { useEffect } from "react";
 import { useActionState } from "react";
 import { GlassInputWrapper } from "./components";
 import { PasswordInput } from "./PasswordInput";
@@ -32,18 +34,21 @@ export function SignUpForm({ onGoogleSignUp, role }: SignUpFormProps) {
     initialState
   );
 
+  // Affichage du toast à chaque changement de message
+  useEffect(() => {
+    if (state?.message) {
+      if (state.success) {
+        toast.success(state.message, { duration: 7000 });
+      } else {
+        toast.error(state.message);
+      }
+    }
+  }, [state?.message, state?.success]);
+
   return (
     <>
-      {/* Message de succès ou d'erreur */}
-      {state?.message && (
-        <div className={`animate-element animate-delay-250 p-4 rounded-2xl ${
-          state.success 
-            ? "bg-green-500/10 border border-green-500/20 text-green-600" 
-            : "bg-destructive/10 border border-destructive/20 text-destructive"
-        }`}>
-          <p className="text-sm">{state.message}</p>
-        </div>
-      )}
+      {/* Toaster Sonner */}
+      <Toaster position="top-right" />
 
       <form className="space-y-5" action={formAction}>
         {/* Email */}

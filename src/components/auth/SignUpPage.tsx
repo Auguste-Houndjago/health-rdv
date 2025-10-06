@@ -28,7 +28,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
         <div className="w-full max-w-md">
           <div className="flex flex-col gap-6">
            
-            <h1 className="animate-element animate-delay-100 text-4xl md:text-5xl font-semibold leading-tight uppercase">{title}</h1>
+            <h1 className="animate-element animate-delay-100 text-4xl text-center md:text-5xl font-semibold leading-tight uppercase">{title}</h1>
             <div className="flex justify-between relative ">
               <p className="animate-element animate-delay-200 text-3xl text-muted-foreground">{description}</p>
           

@@ -21,6 +21,7 @@ export interface Hopital {
     utilisateurHopitals: number;
     rendevous: number;
   };
+  specialites: string[];
 }
 
 export interface HopitalInput {
