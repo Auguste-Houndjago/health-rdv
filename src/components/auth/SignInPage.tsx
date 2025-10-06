@@ -47,7 +47,7 @@ export async function  SignInPage() {
                   <input type="checkbox" name="rememberMe" className="custom-checkbox" />
                   <span className="text-foreground/90">Keep me signed in</span>
                 </label>
-                <a href="#" className="hover:underline text-violet-400 transition-colors">
+                <a href="/auth/reset" className="hover:underline text-violet-400 transition-colors">
                   Reset password
                 </a>
               </div>

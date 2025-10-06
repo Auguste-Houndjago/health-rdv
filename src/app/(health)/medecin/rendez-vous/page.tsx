@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,80 +28,65 @@ import {
   Phone,
   Mail,
   FileText,
-  MoreHorizontal
+  MoreHorizontal,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import { 
+  obtenirRendezVousMedecin, 
+  obtenirStatistiquesRendezVous,
+  type RendezVous 
+} from "@/app/actions/rendez-vous";
 
 export default function RendezVousPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showRDVDialog, setShowRDVDialog] = useState(false);
-  const [selectedRDV, setSelectedRDV] = useState<any>(null);
+  const [selectedRDV, setSelectedRDV] = useState<RendezVous | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [rendezVous, setRendezVous] = useState<RendezVous[]>([]);
+  const [stats, setStats] = useState({
+    totalRDV: 0,
+    rdvAujourdhui: 0,
+    rdvConfirmes: 0,
+    rdvEnAttente: 0
+  });
+  const [loading, setLoading] = useState(true);
 
-  // Données simulées - à remplacer par des hooks réels
-  const rendezVous = [
-    {
-      id: "1",
-      patient: {
-        nom: "Dupont",
-        prenom: "Jean",
-        telephone: "01 23 45 67 89",
-        email: "jean.dupont@email.com"
-      },
-      date: "2024-01-25",
-      heure: "09:00",
-      duree: 30,
-      motif: "Consultation de routine",
-      statut: "CONFIRME",
-      notes: "Patient stable, tension normale"
-    },
-    {
-      id: "2",
-      patient: {
-        nom: "Martin",
-        prenom: "Marie",
-        telephone: "01 98 76 54 32",
-        email: "marie.martin@email.com"
-      },
-      date: "2024-01-25",
-      heure: "10:30",
-      duree: 45,
-      motif: "Suivi diabète",
-      statut: "CONFIRME",
-      notes: "Contrôle glycémie, adaptation traitement"
-    },
-    {
-      id: "3",
-      patient: {
-        nom: "Bernard",
-        prenom: "Pierre",
-        telephone: "01 45 67 89 01",
-        email: "pierre.bernard@email.com"
-      },
-      date: "2024-01-26",
-      heure: "14:00",
-      duree: 60,
-      motif: "Consultation urgente",
-      statut: "EN_ATTENTE",
-      notes: "Douleurs thoraciques, ECG à faire"
-    },
-    {
-      id: "4",
-      patient: {
-        nom: "Leroy",
-        prenom: "Sophie",
-        telephone: "01 34 56 78 90",
-        email: "sophie.leroy@email.com"
-      },
-      date: "2024-01-27",
-      heure: "11:15",
-      duree: 30,
-      motif: "Contrôle post-opératoire",
-      statut: "ANNULE",
-      notes: "Patient a annulé, reporter à la semaine prochaine"
+  // Charger les données au montage du composant
+  useEffect(() => {
+    chargerDonnees();
+  }, []);
+
+  const chargerDonnees = async () => {
+    setLoading(true);
+    try {
+      const [rdvResult, statsResult] = await Promise.all([
+        obtenirRendezVousMedecin(),
+        obtenirStatistiquesRendezVous()
+      ]);
+
+      if (rdvResult.success) {
+        setRendezVous(rdvResult.data || []);
+      } else {
+        toast.error(rdvResult.error || "Erreur lors du chargement des rendez-vous");
+      }
+
+      if (statsResult.success) {
+        setStats(statsResult.data || {
+          totalRDV: 0,
+          rdvAujourdhui: 0,
+          rdvConfirmes: 0,
+          rdvEnAttente: 0
+        });
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des données:", error);
+      toast.error("Erreur lors du chargement des données");
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const filteredRDV = rendezVous.filter(rdv =>
     rdv.patient.nom.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -109,9 +94,13 @@ export default function RendezVousPage() {
     rdv.motif.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleViewRDV = (rdv: any) => {
+  const handleViewRDV = (rdv: RendezVous) => {
     setSelectedRDV(rdv);
     setShowRDVDialog(true);
+  };
+
+  const handleRefresh = () => {
+    chargerDonnees();
   };
 
   const getStatutBadge = (statut: string) => {
@@ -140,12 +129,18 @@ export default function RendezVousPage() {
     }
   };
 
-  const stats = {
-    totalRDV: rendezVous.length,
-    rdvAujourdhui: rendezVous.filter(rdv => rdv.date === new Date().toISOString().split('T')[0]).length,
-    rdvConfirmes: rendezVous.filter(rdv => rdv.statut === "CONFIRME").length,
-    rdvEnAttente: rendezVous.filter(rdv => rdv.statut === "EN_ATTENTE").length
-  };
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Chargement des rendez-vous...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -169,6 +164,10 @@ export default function RendezVousPage() {
             onClick={() => setViewMode("calendar")}
           >
             Calendrier
+          </Button>
+          <Button variant="outline" onClick={handleRefresh}>
+            <Clock className="h-4 w-4 mr-2" />
+            Actualiser
           </Button>
           <Button>
             <Plus className="h-4 w-4 mr-2" />
