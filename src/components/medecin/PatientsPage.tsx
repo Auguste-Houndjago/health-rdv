@@ -7,7 +7,7 @@ import { usePatients } from "@/hooks/patients/usePatients"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { RiUserLine, RiHeartLine, RiCalendarLine, RiPulseLine } from "@remixicon/react"
+import { RiUserLine, RiHeartLine, RiPulseLine } from "@remixicon/react"
 
 export default function PatientsPage({ medecinId }: { medecinId: string }) {
   const [activeTab, setActiveTab] = useState<"all" | "sexe">("all")

@@ -1,22 +1,25 @@
-
 "use server"
-import PatientSidebar from '@/components/patient/PatientSidebar';
+import MedecinSidebar from '@/components/medecin/MedecinSidebar';
 import UserHeader from '@/components/user/UserHeader';
 import { getUserInfo } from '@/services/users';
+import { redirect } from 'next/navigation';
 
-export default async function PatientLayout({
+export default async function MedecinLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
 
   const user = await getUserInfo()
-  console.log(" LAYOUT")
+  if (!user?.medecin) {
+    return redirect("/")
+  }
+  console.log(" LAYOUT MEDECIN")
   
   return (
     <div className="flex h-screen bg-background">
       <div className="w-64 flex-shrink-0">
-        <PatientSidebar />
+        <MedecinSidebar />
       </div>
       <main className="flex-1 overflow-auto p-6">
         <UserHeader avatarUrl={user?.avatar_url} name={user?.nom} />
