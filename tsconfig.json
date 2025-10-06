@@ -6,6 +6,11 @@
     "skipLibCheck": true,
     "noEmitOnError": false,  // build passe même avec erreurs
     "strict": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
