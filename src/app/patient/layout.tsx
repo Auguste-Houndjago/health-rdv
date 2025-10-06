@@ -18,7 +18,7 @@ export default async function PatientLayout({
         <PatientSidebar />
       </div>
       <main className="flex-1 overflow-auto p-6">
-        <UserHeader avatarUrl={user?.avatar_url} name={user?.nom} />
+      
         {children}
       </main>
     </div>

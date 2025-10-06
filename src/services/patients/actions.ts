@@ -3,6 +3,8 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { getUserInfo } from "../users";
+import { Prisma } from "@prisma/client";
 
 // Récupérer tous les patients avec leurs informations
 export async function getPatients() {
@@ -203,58 +205,133 @@ export async function updatePatient(
 }
 
 // Récupérer les patients d'un médecin spécifique
-export async function getPatientsByMedecin(medecinId: string) {
-  try {
-    const patients = await prisma.patient.findMany({
-      where: {
-        rendezVous: {
-          some: {
-            medecinId: medecinId,
-          },
-        },
-        utilisateur: {
-          deletedAt: null,
-        },
-      },
-      include: {
-        utilisateur: {
-          select: {
-            id: true,
-            nom: true,
-            prenom: true,
-            email: true,
-            telephone: true,
-            avatarUrl: true,
-            dateNaissance: true,
-          },
-        },
-        rendezVous: {
-          where: {
-            medecinId: medecinId,
-          },
-          orderBy: {
-            date: "desc",
-          },
-          take: 3, // Derniers 3 rendez-vous avec ce médecin
-        },
-      },
-      orderBy: {
-        utilisateur: {
-          nom: "asc",
-        },
-      },
-    });
+// src/services/patients/actions.ts
 
-    return {
-      success: true,
-      data: patients,
+// export async function getPatientsByMedecin({ medecinId }: { medecinId?: string }) {
+//   const user = await getUserInfo();
+
+//   if (!user) {
+//     throw new Error("Utilisateur non authentifié");
+//   }
+
+//   if (user.role !== "MEDECIN") {
+//     throw new Error("Utilisateur non médecin");
+//   }
+
+//   const targetMedecinId = medecinId || user.id;
+
+//   const patients = await prisma.patient.findMany({
+//     where: {
+//       rendezVous: {
+//         some: { medecinId: targetMedecinId },
+//       },
+//       utilisateur: {
+//         deletedAt: null,
+//       },
+//     },
+//     include: {
+//       utilisateur: {
+//         select: {
+//           id: true,
+//           nom: true,
+//           prenom: true,
+//           email: true,
+//           telephone: true,
+//           avatarUrl: true,
+//           dateNaissance: true,
+//           status: true,
+//           createdAt: true,
+//           updatedAt: true,
+//           role: true,
+//           rendezVous:{
+//             where: { medecinId: targetMedecinId  },
+//             orderBy: { date: "desc" },
+//             take: 3,
+//             include: {
+//               medecin: {
+//                 select: {
+//                   utilisateur: {
+//                     select: {  nom: true, prenom: true , avatarUrl: true },
+//                   },
+//                   specialite: {
+//                     select: { nom: true, id: true },
+//                   },
+//                 },
+//               },
+//             },
+//           }
+//         },
+//       },
+//     },
+//     orderBy: { utilisateur: { nom: "asc" } },
+//   });
+
+//   return patients; 
+// }
+
+
+/**
+ * Récupère les patients liés à un médecin donné.
+ * - Vérifie que l'utilisateur est connecté et est un médecin.
+ * - Vérifie que le médecin (targetMedecinId) existe bien dans la base.
+ */
+
+
+// Type exporté directement depuis Prisma
+export type PatientByMedecinPayload = Prisma.PatientGetPayload<{
+  include: {
+    utilisateur: true;
+    rendezVous: {
+      where: { medecinId: string };
+      orderBy: { date: "desc" };
+      take: 5;
+      include: {
+        medecin: {
+          select: {
+            utilisateur: { select: { nom: true; prenom: true; avatarUrl: true } };
+            specialite: { select: { id: true; nom: true } };
+          };
+        };
+      };
     };
-  } catch (error) {
-    console.error("Erreur lors de la récupération des patients du médecin:", error);
-    return {
-      success: false,
-      error: "Erreur lors de la récupération des patients",
-      data: [],
-    };
-  }
+  };
+}>[];
+
+export async function getPatientsByMedecin({ medecinId }: { medecinId?: string }) {
+  const user = await getUserInfo();
+
+  if (!user) throw new Error("Utilisateur non authentifié");
+  if (user.role !== "MEDECIN") throw new Error("Utilisateur non médecin");
+
+  const targetMedecinId = medecinId ?? user.id;
+
+  const medecinExists = await prisma.medecin.findUnique({
+    where: { id: targetMedecinId },
+    select: { id: true },
+  });
+
+  if (!medecinExists) throw new Error("Médecin introuvable");
+
+  const patients = await prisma.patient.findMany({
+    where: { rendezVous: { some: { medecinId: targetMedecinId } } },
+    include: {
+      utilisateur: true,
+      rendezVous: {
+        where: { medecinId: targetMedecinId },
+        orderBy: { date: "desc" },
+        take: 5,
+        include: {
+          medecin: {
+            select: {
+              utilisateur: { select: { nom: true, prenom: true, avatarUrl: true } },
+              specialite: { select: { id: true, nom: true } },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { utilisateur: { nom: "asc" } },
+  });
+
+  return patients;
 }
