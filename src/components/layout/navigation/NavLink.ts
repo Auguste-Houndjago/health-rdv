@@ -18,8 +18,8 @@ export const navLinks: NavLink[] = [
   },
   {
     id: 'services',
-    label: 'Services',
-    href: '#services'
+    label: 'se connecter',
+    href: '/login'
   },
   {
     id: 'about',
