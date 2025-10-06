@@ -1,26 +1,24 @@
-
 import { Role } from "@prisma/client";
 import MedecinPhoneAnimation from "../animation/Medecin_phone";
-import { TextAnimate } from "../animation/TextAnimate";
 import { GoogleIcon } from "./components";
 import { SignUpForm } from "./SignUpForm";
 import { handleGoogleLogin } from "@/services/auth/googleAuth";
+import Link from "next/link";
 
 interface SignUpPageProps {
   title?: string;
   description?: string;
   heroImage?: string;
   onGoogleSignUp?: () => void;
-  role?:Role
+  role?: Role;
 }
 
 export const SignUpPage: React.FC<SignUpPageProps> = ({
   title = "Inscription",
-  description = "Cree un compte Patient",
+  description = "Créez un compte Patient",
   heroImage,
   onGoogleSignUp,
   role
-
 }) => {
   return (
     <div className="h-[100dvh] flex flex-col md:flex-row font-geist w-[100dvw]">
@@ -28,7 +26,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
       <section className="flex-1 flex flex-col items-center justify-center p-8">
 
         <div className="w-full max-w-md">
-          <div className="flex flex-col  gap-6">
+          <div className="flex flex-col gap-6">
            
             <h1 className="animate-element animate-delay-100 text-4xl md:text-5xl font-semibold leading-tight uppercase">{title}</h1>
             <div className="flex justify-between relative ">
@@ -40,12 +38,12 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
               
             </div>
           
-            {/* Formulaire client avec action serveur */}
-            <SignUpForm  role={role} />
+            {/* Formulaire d'inscription avec action serveur */}
+            <SignUpForm role={role} />
 
             <div className="animate-element animate-delay-900 relative flex items-center justify-center">
               <span className="w-full border-t border-border"></span>
-              <span className="px-4 text-sm text-muted-foreground bg-background absolute">Or continue with</span>
+              <span className="px-4 text-sm text-muted-foreground bg-background absolute">Ou continuer avec</span>
             </div>
 
             <button
@@ -53,14 +51,14 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
               className="animate-element animate-delay-1000 w-full flex items-center justify-center gap-3 border border-border rounded-2xl py-4 hover:bg-secondary transition-colors"
             >
               <GoogleIcon />
-              Continue with Google
+              Continuer avec Google
             </button>
 
             <p className="animate-element animate-delay-1100 text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <a href="#" className="text-violet-400 hover:underline transition-colors">
-                Sign In
-              </a>
+              Vous avez déjà un compte ?{" "}
+              <Link href={"/auth/signin"} className="text-primary hover:underline">
+                Se connecter
+              </Link>
             </p>
           </div>
         </div>

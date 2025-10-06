@@ -15,7 +15,7 @@ export default async function PatientLayout({
       <AdminSidebar />
 
       {/* Main qui prend le reste de la largeur */}
-      <main className="flex-1 flex flex-col  overflow-auto">
+      <main className="flex-1 flex flex-col p-4 overflow-auto">
         {children}
       </main>
     </div>

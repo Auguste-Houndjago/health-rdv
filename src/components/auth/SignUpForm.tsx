@@ -1,4 +1,4 @@
-// src/components/SignUpForm.tsx (Client Component)
+// src/components/SignUpForm.tsx (Composant Client)
 "use client";
 
 import { useActionState } from "react";
@@ -7,10 +7,9 @@ import { PasswordInput } from "./PasswordInput";
 import { signUpAction } from "@/services/auth/actions";
 import { Role } from "@prisma/client";
 
-
 interface SignUpFormProps {
   onGoogleSignUp?: () => void;
-  role?: Role
+  role?: Role;
 }
 
 // Typage de l'état retourné par l'action serveur
@@ -49,12 +48,12 @@ export function SignUpForm({ onGoogleSignUp, role }: SignUpFormProps) {
       <form className="space-y-5" action={formAction}>
         {/* Email */}
         <div className="animate-element animate-delay-400">
-          <label className="text-sm font-medium text-muted-foreground">Email Address</label>
+          <label className="text-sm font-medium text-muted-foreground">Adresse Email</label>
           <GlassInputWrapper>
             <input 
               name="email" 
               type="email" 
-              placeholder="Enter your email address" 
+              placeholder="Entrez votre adresse email" 
               className="w-full bg-transparent text-sm p-4 rounded-2xl focus:outline-none" 
             />
           </GlassInputWrapper>
@@ -63,25 +62,25 @@ export function SignUpForm({ onGoogleSignUp, role }: SignUpFormProps) {
           )}
         </div>
 
-        {/* Password */}
+        {/* Mot de passe */}
         <PasswordInput
           name="password"
-          label="Password"
-          placeholder="Create a password"
+          label="Mot de passe"
+          placeholder="Créez un mot de passe"
           delay="animate-delay-500"
           error={state?.errors?.password}
         />
 
-        {/* Confirm Password */}
+        {/* Confirmer le mot de passe */}
         <PasswordInput
           name="confirmPassword"
-          label="Confirm Password"
-          placeholder="Confirm your password"
+          label="Confirmer le mot de passe"
+          placeholder="Confirmez votre mot de passe"
           delay="animate-delay-600"
-            error={state?.errors?.confirmPassword}
+          error={state?.errors?.confirmPassword}
         />
 
-        {/* Terms & Conditions */}
+        {/* Conditions générales */}
         <div className="animate-element animate-delay-700 flex items-center gap-3 text-sm">
           <input 
             type="checkbox" 
@@ -89,20 +88,20 @@ export function SignUpForm({ onGoogleSignUp, role }: SignUpFormProps) {
             className="custom-checkbox" 
           />
           <span className="text-foreground/90">
-            I agree to the <a href="#" className="text-violet-400 hover:underline transition-colors">Terms & Conditions</a>
+            J'accepte les <a href="#" className="text-violet-400 hover:underline transition-colors">Conditions Générales</a>
           </span>
         </div>
         {state?.errors?.terms && (
           <p className="text-destructive text-xs mt-1 ml-7">{state.errors.terms}</p>
         )}
 
-        {/* Submit */}
+        {/* Bouton d'inscription */}
         <button
           type="submit"
           disabled={isPending}
           className="animate-element animate-delay-800 w-full rounded-2xl bg-primary py-4 font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isPending ? "Creating Account..." : "Sign Up"}
+          {isPending ? "Création du compte..." : "S'inscrire"}
         </button>
       </form>
     </>

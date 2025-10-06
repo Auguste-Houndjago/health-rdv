@@ -1,29 +1,34 @@
 "use server"
-import Home from '@/components/home/Home'
+import HeroSection from '@/components/home/Home'
 import Header from '@/components/layout/Header';
-
+import SpecialiterListe from '@/components/specialities/SpecialiterListe';
+import SpecialiterSlides from '@/components/specialities/SpecialiterSlides';
+import HopitalList from "@/components/hopital/HopitalList";
 
 import { clearCache, getAuthUser, getCacheStats, getUserInfo } from '@/services/users';
+import SearchDoctor from '@/components/SearchDoctor';
+import NoiseOverlay from '@/components/design/NoiseOverlay';
 
 
 export default async function page() {
   clearCache()
 const user = await getUserInfo({cache:false})
 
- const realuser = await getAuthUser()
 const cached =  getCacheStats()
 
 clearCache()
   return (
-    <div>
-      <Header/>
-      {/* <h1>{user?.email} maill</h1>
-      <h1> real user : {realuser?.email}</h1>
-      <h1>
 
-      size: {cached?.size} max: {cached?.maxSize}
-      </h1> */}
-        <Home/>
+      <div className="flex relative flex-col gap-20 min-h-screen bg-design-bg ">
+      <Header/>
+        <div className="flex flex-col gap-2">
+          <HeroSection/>
+          <span className="max-w-[600px]"><SearchDoctor   /></span>
+        </div>
+        <SpecialiterListe/>
+        <SpecialiterSlides/>
+        <HopitalList/>
+        <NoiseOverlay intensity={18} blendMode="difference" />
     </div>
   )
 }
