@@ -6,6 +6,8 @@ export interface NavLink {
 }
 
 export const navLinks: NavLink[] = [
+
+
   {
     id: 'home',
     label: 'Accueil',
@@ -13,8 +15,8 @@ export const navLinks: NavLink[] = [
   },
   {
     id: 'find-doctor',
-    label: 'Trouver un médecin',
-    href: '#find-doctor'
+    label: 'acceder a son pannel',
+    href: '/patient'
   },
   {
     id: 'services',

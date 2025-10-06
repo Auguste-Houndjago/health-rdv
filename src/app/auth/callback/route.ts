@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     console.error("Erreur d'authentification:", error.message);
-   return NextResponse.redirect(new URL("/", origin));
+  //  return NextResponse.redirect(new URL("/", origin));
   }
 
   if (session) {
@@ -56,12 +56,6 @@ export async function GET(request: NextRequest) {
     const hasOrg = Boolean(hopitalId);
     const invitationToken = userInfo.invitationToken;
 
-    // Check for invitation token and redirect to welcome/token page
-    // if (invitationToken) {
-    //   return NextResponse.redirect(
-    //     new URL(`/welcome/token?token=${invitationToken}`, requestUrl.origin),
-    //   );
-    // }
 
     console.log(
       "userFunction" , userFunction, "userRole", userRole, "hasOrg", hasOrg
