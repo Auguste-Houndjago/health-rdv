@@ -19,9 +19,9 @@ export default async function MedecinLayout({
   // Récupérer la spécialité du médecin via server action
   const specialiteResult = await obtenirSpecialiteMedecin()
   
-  // if (!specialiteResult.success) {
-  //   return redirect("/")
-  // }
+  if (!specialiteResult.success) {
+    return redirect("/")
+  }
 
   const { data: specialiteInfo } = specialiteResult
 
