@@ -56,7 +56,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
 
             <p className="animate-element animate-delay-1100 text-center text-sm text-muted-foreground">
               Vous avez déjà un compte ?{" "}
-              <Link href={"/auth/signin"} className="text-primary hover:underline">
+              <Link href={"/login"} className="text-primary hover:underline">
                 Se connecter
               </Link>
             </p>
