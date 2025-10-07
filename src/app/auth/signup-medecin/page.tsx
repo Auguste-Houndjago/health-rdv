@@ -13,9 +13,9 @@ export default async function Signup({
 
   const user = await getUserInfo({cache:false})
 
-  if (user) {
-    return redirect("/");
-  }
+  // if (user) {
+  //   return redirect("/");
+  // }
 
  return(
   <div>

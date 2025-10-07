@@ -14,9 +14,9 @@ export default async function Signup({
   
   const user = await getUserInfo()
 
-  if (user) {
-    return redirect("/");
-  }
+  // if (user) {
+  //   return redirect("/");
+  // }
 
  return(
       <SignUpPage title="INSCRIPTION" description="Patient"/>
