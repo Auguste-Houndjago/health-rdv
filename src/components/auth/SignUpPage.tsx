@@ -20,9 +20,11 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
   onGoogleSignUp,
   role
 }) => {
+  // signup-patient
+  const link = role === Role.MEDECIN ? "/auth/signup" : "/auth/signup-medecin";
   return (
     <div className="h-[100dvh] flex flex-col md:flex-row font-geist w-[100dvw]">
-      
+
       <section className="flex-1 flex flex-col items-center justify-center p-8">
 
         <div className="w-full max-w-md">
@@ -32,9 +34,9 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({
             <div className="flex justify-between relative ">
               <p className="animate-element animate-delay-200 text-3xl text-muted-foreground">{description}</p>
           
-              <div className="flex items-center justify-center absolute right-0">
+              <Link href={link} className="flex items-center justify-center absolute right-0">
                 <MedecinPhoneAnimation className="size-30 border-2 border-indigo-500 rounded-full"/>
-              </div>
+              </Link>
               
             </div>
           
