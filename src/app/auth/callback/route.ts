@@ -1,102 +1,81 @@
+// auth/callback/route.ts
 import { createClient } from "@/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { type EmailOtpType } from "@supabase/supabase-js";
-import { getUserInfo } from "@/services/users";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const requestUrl = new URL(request.url);
-  const redirectTo = request.nextUrl.clone();
-
-  redirectTo.searchParams.delete("code");
-  redirectTo.searchParams.delete("token_hash");
-  redirectTo.searchParams.delete("type");
-
-  const origin = request.nextUrl.origin || process.env.NEXT_PUBLIC_APP_URL;
-
+  
   const supabase = await createClient();
   let session = null;
   let error = null;
 
+  // Échange du code pour la session
   if (code) {
-    ({
-      data: { session },
-      error,
-    } = await supabase.auth.exchangeCodeForSession(code));
+    const result = await supabase.auth.exchangeCodeForSession(code);
+    session = result.data.session;
+    error = result.error;
   } else if (token_hash && type) {
-    ({
-      data: { session },
-      error,
-    } = await supabase.auth.verifyOtp({ type, token_hash }));
+    const result = await supabase.auth.verifyOtp({ type, token_hash });
+    session = result.data.session;
+    error = result.error;
   }
 
   if (error) {
     console.error("Erreur d'authentification:", error.message);
-  //  return NextResponse.redirect(new URL("/", origin));
+    return NextResponse.redirect(new URL("/login?error=auth_failed", request.url));
   }
 
-  if (session) {
-    await supabase.auth.refreshSession({
-      refresh_token: session.refresh_token,
-    });
+  if (!session) {
+    console.error("Aucune session disponible");
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 🔽 Utilisation de la fonction getUserInfo à la place de getUser()
-  const userInfo = await getUserInfo({ cache: false });
-
-  if (userInfo) {
-    const userFunction = userInfo.function;
-    const userRole = userInfo.role;
-    const orgSlug = userInfo.hopital?.slug ?? null; 
-    const hopitalId = userInfo.hopital?.id ?? null; 
-    const newUser = userInfo.status === "PENDING";
-    const hasOrg = Boolean(hopitalId);
-    const invitationToken = userInfo.invitationToken;
-
-
-    console.log(
-      "userFunction" , userFunction, "userRole", userRole, "hasOrg", hasOrg
-    )
-
-
-    if (newUser) {
-      return NextResponse.redirect(new URL("/auth/information", origin));
-    }
+  // Récupération des métadonnées utilisateur directement depuis la session
+  const userMetadata = session.user.user_metadata || {};
   
+  console.log("User Metadata:", userMetadata);
 
-    if ((userFunction === "RESPONSABLE" || userFunction === "SUPER_ADMIN") && !hasOrg) {
-      console.log("REDIRECT ORG SETUP PAGE");
-      return NextResponse.redirect(
-        new URL("/auth/org-setup", requestUrl.origin),
-      );
-    }
+  const userFunction = userMetadata.function || "GUEST";
+  const userRole = userMetadata.role || "GUEST";
+  const orgSlug = userMetadata.hopital?.slug || null;
+  const hopitalId = userMetadata.hopital?.id || null;
+  const newUser = userMetadata.status === "PENDING";
+  const hasOrg = Boolean(hopitalId);
+  const invitationToken = userMetadata.invitationToken;
 
+  console.log("User Function:", userFunction, "User Role:", userRole, "Has Org:", hasOrg, "New User:", newUser);
 
-    console.log(
-      "url:", requestUrl.origin ,"error:"
-    )
+  // Logique de redirection
+  if (newUser) {
+    console.log("Redirecting new user to /auth/information");
+    return NextResponse.redirect(new URL("/auth/information", request.url));
+  }
 
+  if ((userFunction === "RESPONSABLE" || userFunction === "SUPER_ADMIN") && !hasOrg) {
+    console.log("Redirecting to org setup page");
+    return NextResponse.redirect(new URL("/auth/org-setup", request.url));
+  }
 
-
-    if (userRole === "MEDECIN") {
-      return NextResponse.redirect(
-        new URL(hasOrg ? "/medecin" : "/medecin/hopital", requestUrl.origin),
-      );
-    }
-
-    if (userRole === "PATIENT") {
-      return NextResponse.redirect(
-        new URL(hasOrg ? "/patient" : "/patient/hopital", requestUrl.origin),
-      );
-    }
-
+  // Redirections spécifiques aux rôles (décommentez si nécessaire)
+  /*
+  if (userRole === "MEDECIN") {
     return NextResponse.redirect(
-      new URL("/auth/information", requestUrl.origin),
+      new URL(hasOrg ? "/medecin" : "/medecin/hopital", request.url),
     );
   }
 
-  return NextResponse.redirect(new URL("/login", requestUrl.origin));
+  if (userRole === "PATIENT") {
+    return NextResponse.redirect(
+      new URL(hasOrg ? "/patient" : "/patient/hopital", request.url),
+    );
+  }
+  */
+
+  // Redirection par défaut vers les informations
+  console.log("Redirecting to default information page");
+  return NextResponse.redirect(new URL("/auth/information", request.url));
 }
