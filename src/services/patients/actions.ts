@@ -304,7 +304,7 @@ export async function getPatientsByMedecin({ medecinId }: { medecinId?: string }
   if (user.role !== "MEDECIN") throw new Error("Utilisateur non médecin");
 
   const targetMedecinId = medecinId ?? user.id;
-
+  console.log("targetMedecinId", targetMedecinId)
   const medecinExists = await prisma.medecin.findUnique({
     where: { id: targetMedecinId },
     select: { id: true },

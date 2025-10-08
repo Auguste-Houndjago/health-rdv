@@ -44,8 +44,9 @@ export const usePatients = (options: UsePatientsOptions = {}) => {
     return Object.keys(conditions).length > 0 ? conditions : undefined;
   }, [filters]);
 
-  const fetchPatients = async ({ medecinId }: { medecinId?: string }) => {
-    const result: PatientByMedecinPayload = await getPatientsByMedecin({ medecinId });
+  const fetchPatients = async () => {
+    console.log("medecinId fetchPatients", filters.medecinId)
+    const result: PatientByMedecinPayload = await getPatientsByMedecin({ medecinId: filters.medecinId });
     return result;
   };
 

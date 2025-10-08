@@ -77,7 +77,7 @@ export async function  SignInPage() {
 
             <p className="animate-element animate-delay-900 text-center text-sm text-muted-foreground">
               New to our platform?{" "}
-              <a href="#" className="text-violet-400 hover:underline transition-colors">
+              <a href="/auth/signup" className="text-violet-400 hover:underline transition-colors">
                 Create Account
               </a>
             </p>

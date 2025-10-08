@@ -10,7 +10,7 @@ import {
 export const navigationItems = [
     {
       name: "Tableau de bord",
-      href: "/patient/dashboard",
+      href: "/patient/",
       icon: Home,
       description: "Vue d'ensemble"
     },

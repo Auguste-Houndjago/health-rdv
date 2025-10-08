@@ -64,10 +64,12 @@ export default function PatientsPage({ medecinId }: { medecinId: string }) {
   // Filtres groupe sanguin et statut retirés
 
   if (error) {
+    console.log("error medecin users", error)
     return (
       <div className="min-h-screen bg-background p-8">
         <div className="mx-auto max-w-7xl">
           <div className="text-red-500">Erreur: {error.message}</div>
+          <h1>medecinId: {medecinId}</h1>
         </div>
       </div>
     )

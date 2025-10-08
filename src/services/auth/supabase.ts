@@ -20,27 +20,6 @@ interface SignUpParams {
 
 
 
-// export async function signUpResponsable(params: SignUpParams) {
-//   const { email, password, info } = params;
-
-//   const supabase = await createClient();
-//   const { data, error } = await supabase.auth.signUp({
-//     email,
-//     password,
-    
-//     options: {
-//       emailRedirectTo: `${baseUrl}/auth/callback`,
-//       data: {
-//         ...info,
-//         role: Role.ADMIN,
-//         function: Functions.SUPER_ADMIN,
-//       },
-//     },
-//   });
-
-//   return { data, error };
-// }
-
 
 
 
@@ -141,43 +120,41 @@ export async function signUp(
     phone?: string;
     avatar_url?: string;
     role?: Role;
-    status?:StatusUtilisateur
+    status?: StatusUtilisateur;
   },
 ) {
-  try {
-    const supabase = await createClient();
+  const supabase = await createClient();
 
-    // 🔽 On fusionne les métadonnées, y compris le rôle
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${baseUrl}/auth/callback`,
-        data: {
-          name: metadata?.name ?? null,
-          phone: metadata?.phone ?? null,
-          avatar_url: metadata?.avatar_url ?? null,
-          role: metadata?.role || "PATIENT", 
-          status:metadata?.status || "PENDING"
-        },
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${baseUrl}/auth/callback`,
+      data: {
+        name: metadata?.name ?? null,
+        phone: metadata?.phone ?? null,
+        avatar_url: metadata?.avatar_url ?? null,
+        role: metadata?.role || "PATIENT",
+        status: metadata?.status || "PENDING",
       },
-    });
+    },
+  });
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return {
-      success: true,
-      message: `Check your email (${email}) to continue sign up process`,
-    };
-  } catch (err: any) {
+  if (error) {
+    // throw new Error(error.message);
+    console.log("erreur signup :", error)
     return {
       success: false,
-      error: err.message || "Sign up failed",
+      error: error.message,
     };
   }
+
+  return {
+    success: true,
+    message: `Check your email (${email}) to continue sign up process`,
+  };
 }
+
 
 
 
