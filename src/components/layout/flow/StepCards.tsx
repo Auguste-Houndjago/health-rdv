@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import AvatarUploader from "@/components/user/AvatarUploader"
+import SelectSpecialites from "@/components/ux/SelectSpecialites"
 
 export function IdentityStepCard({
   nom,
@@ -248,17 +249,13 @@ export function MedecinProfileStepCard({
   return (
     <StepCard title="Profil médecin">
       <div className="flex flex-col gap-4">
-        <div>
-          <Label htmlFor="specialiteId">Spécialité</Label>
-          <Input
-            id="specialiteId"
-            type="text"
-            placeholder="Cardiologie"
-            value={specialiteId}
-            onChange={(e) => setSpecialiteId(e.target.value)}
-            className="mt-1"
-          />
-        </div>
+        <SelectSpecialites
+          value={specialiteId}
+          onChange={setSpecialiteId}
+          label="Spécialité"
+          placeholder="Sélectionnez votre spécialité"
+          required={true}
+        />
         <div>
           <Label htmlFor="numLicence">Numéro de licence</Label>
           <Input

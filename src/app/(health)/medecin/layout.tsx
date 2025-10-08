@@ -11,7 +11,7 @@ export default async function MedecinLayout({
   children: React.ReactNode
 }) {
 
-  const user = await getUserInfo()
+  const user = await getUserInfo({cache: false})
   // if (!user?.medecin || user.role !== "MEDECIN") {
   //   return redirect("/")
   // }
