@@ -1,3 +1,4 @@
+//src/services/auth/permission.ts
 import { Functions, Role, UserInfo } from "@/types/user";
 import { getUserInfo } from "../users/userInfo";
 
@@ -5,6 +6,35 @@ import { getUserInfo } from "../users/userInfo";
 // ==========================================
 // autorisation
 // ==========================================
+
+
+
+
+export async function completedInformation(user: UserInfo | null): Promise<boolean> {
+  if (!user) return false;
+  
+  // Vérifier si c'est un médecin et s'il a une spécialité
+  if (user.role === "MEDECIN" && user.medecin?.specialite) {
+    return true;
+  }
+  
+  // Vérifier si c'est un patient et s'il a le sexe renseigné
+  if (user.role === "PATIENT" && user.patient?.sexe) {
+    return true;
+  }
+  
+  // Vérifier si c'est un autre rôle (ADMIN, GUEST) - ils n'ont pas besoin d'informations supplémentaires
+  if (user.role && user.role !== "MEDECIN" && user.role !== "PATIENT") {
+    return true;
+  }
+  
+  return false;
+}
+
+export async function requiresInformationCompletion(user: UserInfo | null): Promise<boolean> {
+  return !(await completedInformation(user));
+}
+
 
 // types pour plus de clarté
 export type AuthorizationResult = { success: true } | { success: false; error: string };

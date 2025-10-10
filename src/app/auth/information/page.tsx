@@ -43,7 +43,7 @@ export default async function Page({
                         tag={Tag.H1}
         />
         </div>
-         <AuthSteper role={"MEDECIN"} />
+         <AuthSteper role={role} />
       </div>
     </div>
  )
