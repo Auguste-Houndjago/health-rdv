@@ -27,14 +27,14 @@ export default async function DisponibilitesPage() {
         <p className="text-gray-600 mt-2">
           Configurez vos créneaux horaires de disponibilité pour les consultations
         </p>
-        {specialiteInfo && (
+        {/* {specialiteInfo && (
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800">
               <strong>Spécialité :</strong> {specialiteInfo.nom} | 
               <strong> Hôpital :</strong> {specialiteInfo.hopital}
             </p>
           </div>
-        )}
+        )} */}
       </div>
       
       <DisponibiliteForm

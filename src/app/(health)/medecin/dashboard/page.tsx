@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Users, 
   Calendar, 
@@ -31,6 +31,8 @@ import {
   type PatientRecent,
   type RendezVousAujourdhui
 } from "@/app/actions/dashboard";
+import QuickStats from "@/components/medecin/QuickStats";
+import SpecialiteCard from "@/components/specialite/SpecialiteCard";
 
 export default function MedecinDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -109,7 +111,7 @@ export default function MedecinDashboard() {
         <div>
           <h1 className="text-3xl font-bold">Tableau de Bord Médecin</h1>
           <p className="text-muted-foreground">
-            Bienvenue, Dr. [Nom] - Spécialité: {stats.specialite}
+            Bienvenue, Dr.  - Spécialité: {stats.specialite}
           </p>
         </div>
         <div className="flex gap-2">
@@ -129,58 +131,9 @@ export default function MedecinDashboard() {
       </div>
 
       {/* Cartes de statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Patients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalPatients}</div>
-            <p className="text-xs text-muted-foreground">
-              Patients suivis
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">RDV Aujourd'hui</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.rendezVousAujourdhui}</div>
-            <p className="text-xs text-muted-foreground">
-              Rendez-vous prévus
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Hôpitaux</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.hopitauxAffilies}</div>
-            <p className="text-xs text-muted-foreground">
-              Hôpitaux affiliés
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Spécialité</CardTitle>
-            <Stethoscope className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">{stats.specialite}</div>
-            <p className="text-xs text-muted-foreground">
-              Domaine d'expertise
-            </p>
-          </CardContent>
-        </Card>
+      <div className="flex justify-between items-center gap-4">
+      <QuickStats stats={stats} />
+      <SpecialiteCard className="max-w-72" />
       </div>
 
       {/* Onglets principaux */}

@@ -36,7 +36,7 @@ export interface RendezVousAujourdhui {
 
 export async function obtenirDashboardMedecin() {
   try {
-    const user = await getUserInfo()
+    const user = await getUserInfo({cache:false})
     
     if (!user?.medecin) {
       return {

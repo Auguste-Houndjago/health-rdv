@@ -60,10 +60,10 @@ export const navigationItems = [
       description: "Alertes et messages"
     },
     {
-      name: "Paramètres",
-      href: "/medecin/parametres",
+      name: "Profile",
+      href: "/medecin/profile",
       icon: Settings,
-      description: "Configuration"
+      description: "Informations"
     }
   ];
 

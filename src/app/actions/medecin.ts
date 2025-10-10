@@ -1,6 +1,7 @@
 "use server"
 
 import { getUserInfo } from '@/services/users'
+import { Prisma } from "@prisma/client";
 
 export async function obtenirSpecialiteMedecin() {
   try {
@@ -15,10 +16,10 @@ export async function obtenirSpecialiteMedecin() {
 
     // Récupérer les informations de spécialité du médecin
     const specialiteInfo = {
-      id: user.medecin.specialiteId || user.medecin.specialite,
+      id: user.medecin.specialite || user.medecin.specialite,
       nom: user.medecin.specialite || "Non spécifiée",
       medecinId: user.id,
-      hopital: user.medecin.hopital || "Non spécifié"
+      hopital: user.medecin.hopitaux || "Non spécifié"
     }
 
     return {
@@ -58,4 +59,92 @@ export async function obtenirPlanningMedecin(medecinId: string) {
       error: "Erreur lors de la récupération du planning"
     }
   }
+}
+
+
+
+export type MedecinInfoPayload = Prisma.MedecinGetPayload<{
+  select: {
+    id: true;
+    numLicence: true;
+    anneeExperience: true;
+    titre: true;
+    isDisponible: true;
+    statut: true;
+    utilisateur: {
+      select: {
+        nom: true;
+        prenom: true;
+        email: true;
+        telephone: true;
+        avatarUrl: true;
+        dateNaissance: true;
+        status: true;
+        createdAt: true;
+        updatedAt: true;
+        role: true;
+      };
+    };
+    specialite: {
+      select: {
+        id: true;
+        nom: true;
+        description: true;
+        image: true;
+      };
+    };
+  };
+}>;
+
+export async function getMedecinInfo(): Promise<MedecinInfoPayload> {
+  const user = await getUserInfo({ cache: false });
+
+  if (!user) {
+    throw new Error("Utilisateur non trouvé");
+  }
+
+  if (user.role !== "MEDECIN") {
+    throw new Error("Utilisateur non médecin");
+  }
+
+  const medecin = await prisma.medecin.findUnique({
+    where: { id: user.id },
+    select: {
+      id: true,
+      numLicence: true,
+      anneeExperience: true,
+      titre: true,
+      isDisponible: true,
+      statut: true,
+      utilisateur: {
+        select: {
+          nom: true,
+          prenom: true,
+          email: true,
+          telephone: true,
+          avatarUrl: true,
+          dateNaissance: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+          role: true,
+        },
+      },
+      specialite: {
+        select: {
+          id: true,
+          nom: true,
+          description: true,
+          image: true,
+        },
+      },
+    },
+  });
+
+  if (!medecin) {
+    throw new Error("Profil médecin non trouvé");
+  
+  }
+
+  return medecin;
 }
