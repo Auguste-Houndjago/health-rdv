@@ -62,6 +62,95 @@ export async function obtenirPlanningMedecin(medecinId: string) {
 }
 
 
+/* module rendez-vous */
+
+const rendezVousPayload = {
+  select: {
+    id: true,
+    date: true,
+    duree: true,
+    statut: true,
+    motif: true,
+    createdAt: true,
+    updatedAt: true,
+
+    //  Patient associé
+    patient: {
+      select: {
+        id: true,
+        groupeSanguin: true,
+        sexe: true,
+        utilisateur: {
+          select: {
+            nom: true,
+            prenom: true,
+            email: true,
+            telephone: true,
+            avatarUrl: true,
+            dateNaissance: true,
+          },
+        },
+      },
+    },
+
+    // Utilisateur qui a créé ou gère le RDV
+    utilisateur: {
+      select: {
+        id: true,
+        nom: true,
+        prenom: true,
+        role: true,
+      },
+    },
+
+    // Hôpital du rendez-vous
+    hopital: {
+      select: {
+        id: true,
+        nom: true,
+        adresse: true,
+        contact: true,
+      },
+    },
+  },
+} satisfies Prisma.RendezVousDefaultArgs;
+
+export type MedecinRendezVousType = Prisma.RendezVousGetPayload<typeof rendezVousPayload>;
+
+export async function getRdvByMedecinId({medecinId}: {medecinId?: string}): Promise<MedecinRendezVousType[]> {
+
+  const user = await getUserInfo({cache:false})
+  if (!user) {
+    throw new Error("Utilisateur non trouvé");
+  }
+  if (user.role !== "MEDECIN") {
+    throw new Error("Utilisateur non médecin");
+  }
+
+  const targetMedecinId = medecinId ?? user.id;
+  const existMedecin = await prisma.medecin.findUnique({
+    where: { id: targetMedecinId }
+  });
+
+  if (!existMedecin) {
+    throw new Error("Médecin non trouvé");
+  }
+
+  const rdv = await prisma.rendezVous.findMany({
+    where: { medecinId: targetMedecinId },
+    ...rendezVousPayload,
+    orderBy: { date: "asc" },
+  });
+
+  return rdv;
+}
+
+
+
+
+
+
+
 
 export type MedecinInfoPayload = Prisma.MedecinGetPayload<{
   select: {

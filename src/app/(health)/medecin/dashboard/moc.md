@@ -1,110 +1,3 @@
-"use client";
-
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { 
-  Users, 
-  Calendar, 
-  Building2, 
-  Stethoscope, 
-  TrendingUp, 
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Activity,
-  BarChart3,
-  Loader2,
-  RefreshCw
-} from "lucide-react";
-import { toast } from "sonner";
-import { 
-  obtenirDashboardMedecin,
-  obtenirPatientsRecents,
-  obtenirRendezVousAujourdhui,
-  obtenirStatistiquesAvancees,
-  type DashboardStats,
-  type PatientRecent,
-  type RendezVousAujourdhui
-} from "@/app/actions/dashboard";
-import QuickStats from "@/components/medecin/QuickStats";
-import SpecialiteCard from "@/components/specialite/SpecialiteCard";
-
-export default function MedecinDashboard() {
-  const [activeTab, setActiveTab] = useState("overview");
-  const [stats, setStats] = useState<DashboardStats>({
-    totalPatients: 0,
-    rendezVousAujourdhui: 0,
-    hopitauxAffilies: 0,
-    specialite: "Non spécifiée",
-    nouveauxPatients: 0,
-    consultationsMois: 0,
-    revenusMois: 0,
-    evolutionPatients: 0,
-    evolutionConsultations: 0,
-    evolutionRevenus: 0
-  });
-  const [patientsRecents, setPatientsRecents] = useState<PatientRecent[]>([]);
-  const [rendezVousAujourdhui, setRendezVousAujourdhui] = useState<RendezVousAujourdhui[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Charger les données au montage du composant
-  useEffect(() => {
-    chargerDonnees();
-  }, []);
-
-  const chargerDonnees = async () => {
-    setLoading(true);
-    try {
-      const [statsResult, patientsResult, rdvResult] = await Promise.all([
-        obtenirDashboardMedecin(),
-        obtenirPatientsRecents(),
-        obtenirRendezVousAujourdhui()
-      ]);
-
-      if (statsResult.success) {
-        setStats(statsResult.data || stats);
-      } else {
-        toast.error(statsResult.error || "Erreur lors du chargement des statistiques");
-      }
-
-      if (patientsResult.success) {
-        setPatientsRecents(patientsResult.data || []);
-      }
-
-      if (rdvResult.success) {
-        setRendezVousAujourdhui(rdvResult.data || []);
-      }
-    } catch (error) {
-      console.error("Erreur lors du chargement des données:", error);
-      toast.error("Erreur lors du chargement des données");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRefresh = () => {
-    chargerDonnees();
-  };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="flex items-center space-x-2">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span>Chargement du dashboard...</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
     <div className="container mx-auto p-6 space-y-6">
       {/* En-tête */}
       <div className="flex justify-between items-center">
@@ -131,9 +24,9 @@ export default function MedecinDashboard() {
       </div>
 
       {/* Cartes de statistiques */}
-      <div className="flex justify-between gap-4">
+      <div className="flex justify-between items-center gap-4">
       <QuickStats stats={stats} />
-      <SpecialiteCard  />
+      <SpecialiteCard className="max-w-72" />
       </div>
 
       {/* Onglets principaux */}
@@ -384,8 +277,3 @@ export default function MedecinDashboard() {
         </TabsContent>
       </Tabs>
     </div>
-  );
-}
-
-
-

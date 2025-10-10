@@ -127,7 +127,7 @@ export async function creerDemandeAffiliation(formData: FormData) {
 
     const data = {
       hopitalId: formData.get('hopitalId') as string,
-      medecinId: user.medecin.id,
+      medecinId: user.id,
       motivation: formData.get('motivation') as string,
       specialitesInteret: formData.get('specialitesInteret') as string,
       disponibilite: formData.get('disponibilite') as string

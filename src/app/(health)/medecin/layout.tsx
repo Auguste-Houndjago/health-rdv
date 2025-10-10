@@ -20,9 +20,9 @@ export default async function MedecinLayout({
   
   return (
     <div className="flex h-screen bg-background">
-      <div className="w-64 flex-shrink-0">
-        <MedecinSidebar />
-      </div>
+
+        {/* <MedecinSidebar /> */}
+  
       <main className="flex-1 overflow-auto p-6">
         <UserHeader 
           avatarUrl={user?.avatar_url} 
