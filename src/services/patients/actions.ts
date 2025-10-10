@@ -298,7 +298,7 @@ export type PatientByMedecinPayload = Prisma.PatientGetPayload<{
 }>[];
 
 export async function getPatientsByMedecin({ medecinId }: { medecinId?: string }) {
-  const user = await getUserInfo();
+  const user = await getUserInfo({cache: false});
 
   if (!user) throw new Error("Utilisateur non authentifié");
   if (user.role !== "MEDECIN") throw new Error("Utilisateur non médecin");

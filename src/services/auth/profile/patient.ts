@@ -87,6 +87,7 @@ export async function upsertProfilUtilisateur(params: {
   if (!existingPatient) {
     await prisma.patient.create({
       data: {
+        id: userId,
         userId,
         sexe,
         groupeSanguin,

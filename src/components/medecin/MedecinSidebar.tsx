@@ -5,20 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
-  Home,
-  Calendar,
-  Users,
-  Building2,
-  Stethoscope,
-  FileText,
-  BarChart3,
-  Bell,
-  Settings,
   Menu,
   X,
   UserCheck
 } from "lucide-react";
-import { logoutAction } from "@/services/auth/authActions";
 import { navigationItems } from "./config/navigation";
 import { useUserContext } from "@/providers/UserProvider";
 import LogOutForm from "../auth/LogOutForm";
