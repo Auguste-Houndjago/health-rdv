@@ -1,7 +1,6 @@
 "use server"
 
 import { getUserInfo } from '@/services/users'
-import { obtenirSpecialiteMedecin } from '@/app/actions/medecin'
 import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 
@@ -39,22 +38,22 @@ export async function obtenirRendezVousMedecin() {
   try {
     const user = await getUserInfo()
     
-    if (!user?.medecin) {
+    if (user?.role !== "MEDECIN") {
       return {
         success: false,
         error: "Utilisateur non trouvé ou pas de profil médecin"
       }
     }
 
-    // Récupérer la spécialité du médecin
-    const specialiteResult = await obtenirSpecialiteMedecin()
-    
-    if (!specialiteResult.success) {
-      return {
-        success: false,
-        error: "Impossible de récupérer la spécialité du médecin"
-      }
-    }
+
+    const specialiteId = user.medecin.specialite
+
+if(!specialiteId) {
+  return {
+    success: false,
+    error: "Impossible de récupérer la spécialité du médecin"
+  }
+}
 
     // Ici vous pouvez ajouter la logique pour récupérer les rendez-vous depuis la base de données
     const rendezVous = await prisma.rendezVous.findMany({
@@ -94,7 +93,7 @@ export async function obtenirRendezVousMedecin() {
       motif: rdv.motif || '',
       statut: rdv.statut,
       medecinId: rdv.medecinId,
-      specialiteId: specialiteResult.data?.id || '',
+      specialiteId: specialiteId,
       hopitalId: rdv.hopitalId,
       utilisateurId: rdv.utilisateurId,
       patientId: rdv.patientId,

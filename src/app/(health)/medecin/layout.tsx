@@ -2,7 +2,7 @@
 import MedecinSidebar from '@/components/medecin/MedecinSidebar';
 import UserHeader from '@/components/user/UserHeader';
 import { getUserInfo } from '@/services/users';
-import { obtenirSpecialiteMedecin } from '@/app/actions/medecin';
+
 import { redirect } from 'next/navigation';
 
 export default async function MedecinLayout({
@@ -21,7 +21,7 @@ export default async function MedecinLayout({
   return (
     <div className="flex h-screen bg-background">
 
-        {/* <MedecinSidebar /> */}
+        <MedecinSidebar />
   
       <main className="flex-1 overflow-auto p-6">
         <UserHeader 

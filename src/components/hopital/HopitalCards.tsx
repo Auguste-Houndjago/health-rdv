@@ -2,14 +2,12 @@ import { getHopitaux } from '@/services/hopitaux'
 import React from 'react'
 import { cn } from '@/lib/utils'
 import HopitalCardM from './HopitalCardM'
-import { getUserInfo } from '@/services/users'
 
 interface HopitalCardsProps {
     className?: string
 }
 export default async function HopitalCards({className}: HopitalCardsProps) {
     const hopitaux = await getHopitaux()
-    const user = await getUserInfo()
 
 
   return (

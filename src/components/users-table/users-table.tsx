@@ -82,7 +82,6 @@ export default function UsersTable({users}:{users:UsersWithRole[]}) {
     <div className="space-y-4">
       {/* Filters */}
       <TableFilters table={table} onDeleteRows={handleDeleteRows} />
-
       {/* Table */}
       <Table className="table-fixed border-separate border-spacing-0 [&_tr:not(:last-child)_td]:border-b">
         <TableHeader>

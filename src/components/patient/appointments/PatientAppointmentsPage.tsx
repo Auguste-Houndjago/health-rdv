@@ -1,122 +1,188 @@
-// app/patient/appointments/AppointmentsContent.tsx
-"use client";
+"use client"
 
-import React, { useMemo, useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Calendar, Clock, MapPin, User, Search } from 'lucide-react'
+import DoctorSearch from '@/components/patient/appointments/DoctorSearch'
+import TimeSlotSelector from '@/components/patient/appointments/TimeSlotSelector'
+import AppointmentConfirmation from '@/components/patient/appointments/AppointmentConfirmation'
+import PatientAppointmentsList from '@/components/patient/appointments/PatientAppointmentsList'
+import { useEntityFilter } from '@/hooks/entity/useEntityFilter'
 
-export default function AppointmentsContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [newRdvOpen, setNewRdvOpen] = useState(false);
-  const [selectedMedecin, setSelectedMedecin] = useState<string>("");
-  const [selectedSlotId, setSelectedSlotId] = useState<string>("");
-  const [motif, setMotif] = useState("");
-  const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedDateObj, setSelectedDateObj] = useState<Date | undefined>(undefined);
+export interface Medecin {
+  id: string
+  nom: string
+  prenom: string
+  specialite: string
+  hopital: {
+    id: string
+    nom: string
+    adresse: string
+  }
+  tarif: number
+  note: number
+  experience: number
+}
 
-  // Récupérer les paramètres de l'URL
-  const doctorId = searchParams.get('doctor');
-  const hospitalId = searchParams.get('hospital');
+export interface CreneauDisponible {
+  heureDebut: string
+  heureFin: string
+  duree: number
+}
 
-  // Ouvrir automatiquement le modal si on vient de la page hôpital
-  useEffect(() => {
-    if (doctorId && hospitalId) {
-      setSelectedMedecin(doctorId);
-      setNewRdvOpen(true);
-    }
-  }, [doctorId, hospitalId]);
+export interface RendezVousPatient {
+  id: string
+  medecin: Medecin
+  date: string
+  heure: string
+  duree: number
+  motif: string
+  statut: 'CONFIRME' | 'EN_ATTENTE' | 'ANNULE' | 'TERMINE'
+  hopitalId?: string
+}
 
-  const appointments = useMemo(() => [
-    {
-      date: '2025-09-15', heure: '09:00', hopital: 'CHU Sylvanus Olympio, Lomé', service: 'Cardiologie', statut: 'CONFIRME'
-    },
-    {
-      date: '2025-09-20', heure: '14:30', hopital: 'CHU Kara', service: 'Dermatologie', statut: 'EN_ATTENTE'
-    }
-  ], []);
+export default function PatientAppointmentsPage() {
+  const [selectedMedecin, setSelectedMedecin] = useState<Medecin | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string>('')
+  const [selectedCreneau, setSelectedCreneau] = useState<CreneauDisponible | null>(null)
+  const [motif, setMotif] = useState<string>('')
+  const [currentStep, setCurrentStep] = useState<'search' | 'time' | 'confirm'>('search')
 
-  // Données fictives pour le modal (à remplacer par l'API)
-  const medecins = useMemo(() => ([
-    { id: "d1", titre: "Dr. Ahmadou Ndiaye (Cardiologie)" },
-    { id: "d2", titre: "Dr. Fatou Diop (Cardiologie)" },
-    { id: "d3", titre: "Dr. Moussa Fall (Dermatologie)" },
-    { id: "d4", titre: "Dr. Aminata Ba (Pédiatrie)" },
-    { id: "d5", titre: "Dr. Ibrahima Sarr (Pédiatrie)" },
-  ]), []);
+  const handleMedecinSelect = (medecin: Medecin) => {
+    setSelectedMedecin(medecin)
+    setCurrentStep('time')
+  }
 
-  const disponibilites = useMemo(() => ([
-    { id: "s1", medecinId: "d1", date: new Date().toISOString().slice(0,10), heure: "09:00" },
-    { id: "s2", medecinId: "d1", date: new Date().toISOString().slice(0,10), heure: "10:30" },
-    { id: "s3", medecinId: "d2", date: new Date(Date.now()+86400000).toISOString().slice(0,10), heure: "14:00" },
-    { id: "s4", medecinId: "d2", date: new Date(Date.now()+86400000).toISOString().slice(0,10), heure: "15:30" },
-    { id: "s5", medecinId: "d3", date: new Date(Date.now()+172800000).toISOString().slice(0,10), heure: "11:00" },
-    { id: "s6", medecinId: "d4", date: new Date(Date.now()+172800000).toISOString().slice(0,10), heure: "16:00" },
-    { id: "s7", medecinId: "d5", date: new Date(Date.now()+259200000).toISOString().slice(0,10), heure: "13:30" },
-  ]), []);
+  const handleDateSelect = (date: string) => {
+    setSelectedDate(date)
+  }
 
-  const handleConfirmRdv = async () => {
-    // Intégrer l'appel API ici
-    console.log("Confirmer RDV", { selectedMedecin, selectedDate, selectedSlotId, motif });
-    setNewRdvOpen(false);
-    setMotif("");
-    setSelectedSlotId("");
-  };
+  const handleCreneauSelect = (creneau: CreneauDisponible) => {
+    setSelectedCreneau(creneau)
+    setCurrentStep('confirm')
+  }
 
-  const handleBack = () => {
-    router.back();
-  };
+  const handleBackToSearch = () => {
+    setSelectedMedecin(null)
+    setCurrentStep('search')
+  }
+
+  const handleBackToTime = () => {
+    setSelectedCreneau(null)
+    setCurrentStep('time')
+  }
+
+  const handleAppointmentConfirm = () => {
+    // Logique de confirmation du rendez-vous
+    console.log('Rendez-vous confirmé:', {
+      medecin: selectedMedecin,
+      date: selectedDate,
+      creneau: selectedCreneau,
+      motif
+    })
+    
+    // Reset du formulaire
+    setSelectedMedecin(null)
+    setSelectedDate('')
+    setSelectedCreneau(null)
+    setMotif('')
+    setCurrentStep('search')
+  }
+
 
   return (
-    <div className="min-h-screen ">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-xl font-semibold">Mes rendez-vous</h1>
-            <Button 
-              variant="default" 
-              onClick={() => setNewRdvOpen(true)}
-              className="bg-green-800 hover:bg-green-700"
-            >
-              Nouveau rendez-vous
-            </Button>
-          </div>
-          <p className="text-sm text-foreground/60 mb-4">Gestion de vos rendez-vous médicaux.</p>
-
-          <div className="space-y-2">
-            {appointments.map((r, idx) => (
-              <div key={idx} className="border rounded-md p-3 flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{r.service} • {r.hopital}</p>
-                  <p className="text-sm text-foreground/60">{r.date} • {r.heure}</p>
-                </div>
-                <span className="text-xs px-2 py-1 rounded bg-muted">{r.statut}</span>
-              </div>
-            ))}
-          </div>
-          {/* <AppointmentModal
-            open={newRdvOpen}
-            onOpenChange={setNewRdvOpen}
-            medecins={medecins}
-            disponibilites={disponibilites}
-            selectedMedecin={selectedMedecin}
-            onMedecinChange={setSelectedMedecin}
-            selectedDate={selectedDate}
-            selectedDateObj={selectedDateObj}
-            onDateSelect={(date) => {
-              setSelectedDateObj(date);
-              setSelectedDate(date ? date.toISOString().slice(0,10) : "");
-              setSelectedSlotId("");
-            }}
-            selectedSlotId={selectedSlotId}
-            onSlotSelect={setSelectedSlotId}
-            motif={motif}
-            onMotifChange={setMotif}
-            onConfirm={handleConfirmRdv}
-          /> */}
-        </Card>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold">Prendre un Rendez-vous</h1>
+        <p className="text-muted-foreground">
+          Trouvez un médecin et réservez votre consultation
+        </p>
       </div>
+
+      <Tabs defaultValue="new" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="new">Nouveau Rendez-vous</TabsTrigger>
+          <TabsTrigger value="list">Mes Rendez-vous</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="new" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Réservation de Rendez-vous
+              </CardTitle>
+              <CardDescription>
+                Suivez les étapes pour réserver votre consultation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Indicateur de progression */}
+              <div className="flex items-center justify-center mb-8">
+                <div className="flex items-center space-x-4">
+                  <div className={`flex items-center space-x-2 ${currentStep === 'search' ? 'text-primary' : currentStep === 'time' || currentStep === 'confirm' ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'search' ? 'bg-primary text-primary-foreground' : currentStep === 'time' || currentStep === 'confirm' ? 'bg-green-600 text-white' : 'bg-muted'}`}>
+                      <Search className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm font-medium">Recherche</span>
+                  </div>
+                  
+                  <div className={`w-8 h-1 ${currentStep === 'time' || currentStep === 'confirm' ? 'bg-green-600' : 'bg-muted'}`}></div>
+                  
+                  <div className={`flex items-center space-x-2 ${currentStep === 'time' ? 'text-primary' : currentStep === 'confirm' ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'time' ? 'bg-primary text-primary-foreground' : currentStep === 'confirm' ? 'bg-green-600 text-white' : 'bg-muted'}`}>
+                      <Clock className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm font-medium">Créneau</span>
+                  </div>
+                  
+                  <div className={`w-8 h-1 ${currentStep === 'confirm' ? 'bg-green-600' : 'bg-muted'}`}></div>
+                  
+                  <div className={`flex items-center space-x-2 ${currentStep === 'confirm' ? 'text-primary' : 'text-muted-foreground'}`}>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'confirm' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                      <User className="h-4 w-4" />
+                    </div>
+                    <span className="text-sm font-medium">Confirmation</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contenu des étapes */}
+              {currentStep === 'search' && (
+                <DoctorSearch 
+                  onMedecinSelect={handleMedecinSelect}
+                />
+              )}
+
+              {currentStep === 'time' && selectedMedecin && (
+                <TimeSlotSelector
+                  medecin={selectedMedecin}
+                  onDateSelect={handleDateSelect}
+                  onCreneauSelect={handleCreneauSelect}
+                  onBack={handleBackToSearch}
+                />
+              )}
+
+              {currentStep === 'confirm' && selectedMedecin && selectedCreneau && (
+                <AppointmentConfirmation
+                  medecin={selectedMedecin}
+                  date={selectedDate}
+                  creneau={selectedCreneau}
+                  motif={motif}
+                  onMotifChange={setMotif}
+                  onConfirm={handleAppointmentConfirm}
+                  onBack={handleBackToTime}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="list">
+          <PatientAppointmentsList />
+        </TabsContent>
+      </Tabs>
     </div>
-  );
+  )
 }

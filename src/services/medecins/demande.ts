@@ -282,21 +282,22 @@ export async function annulerDemandeHopital(hopitalId: string) {
 /**
  * Récupérer toutes les demandes d'un hôpital (pour les administrateurs)
  */
-export async function getDemandesHopital(hopitalId: string) {
+export async function getDemandesHopital(hopitalId?: string) {
   try {
     const user = await getUserInfo();
     
-    if (user?.role !== "ADMIN") {
-      return {
-        success: false,
-        error: "Accès non autorisé"
-      };
-    }
+    // if (user?.role !== "ADMIN") {
+    //   return {
+    //     success: false,
+    //     error: "Accès non autorisé"
+    //   };
+    // }
+
+    // Si aucun hopitalId fourni, récupérer toutes les demandes
+    const whereClause = hopitalId ? { hopitalId } : {};
 
     const demandes = await prisma.demandeHopital.findMany({
-      where: {
-        hopitalId: hopitalId
-      },
+      where: whereClause,
       include: {
         medecin: {
           select: {
@@ -317,6 +318,13 @@ export async function getDemandesHopital(hopitalId: string) {
                 nom: true
               }
             }
+          }
+        },
+        hopital: {
+          select: {
+            id: true,
+            nom: true,
+            adresse: true
           }
         }
       },
@@ -354,12 +362,12 @@ export async function mettreAJourStatutDemande({
   try {
     const user = await getUserInfo();
     
-    if (user?.role !== "ADMIN") {
-        return {
-          success: false,
-          error: "Accès non autorisé"
-        };
-      }
+    // if (user?.role !== "ADMIN") {
+    //     return {
+    //       success: false,
+    //       error: "Accès non autorisé"
+    //     };
+    //   }
 
     const demande = await prisma.demandeHopital.update({
       where: {
@@ -403,4 +411,6 @@ export async function mettreAJourStatutDemande({
       error: "Erreur lors de la mise à jour du statut"
     };
   }
+
+  
 }

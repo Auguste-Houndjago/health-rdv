@@ -1,40 +1,9 @@
 "use server"
 
 import { getUserInfo } from '@/services/users'
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client"
+import { prisma } from '@/lib/prisma'
 
-export async function obtenirSpecialiteMedecin() {
-  try {
-    const user = await getUserInfo()
-    
-    if (!user?.medecin) {
-      return {
-        success: false,
-        error: "Utilisateur non trouvé ou pas de profil médecin"
-      }
-    }
-
-    // Récupérer les informations de spécialité du médecin
-    const specialiteInfo = {
-      id: user.medecin.specialite || user.medecin.specialite,
-      nom: user.medecin.specialite || "Non spécifiée",
-      medecinId: user.id,
-      hopital: user.medecin.hopitaux || "Non spécifié"
-    }
-
-    return {
-      success: true,
-      data: specialiteInfo
-    }
-    
-  } catch (error) {
-    console.error("Erreur lors de la récupération de la spécialité:", error)
-    return {
-      success: false,
-      error: "Erreur lors de la récupération de la spécialité"
-    }
-  }
-}
 
 export async function obtenirPlanningMedecin(medecinId: string) {
   try {
@@ -236,4 +205,74 @@ export async function getMedecinInfo(): Promise<MedecinInfoPayload> {
   }
 
   return medecin;
+}
+
+/**
+ * Récupérer tous les médecins pour la recherche
+ */
+export async function getAllMedecins() {
+  try {
+    const medecins = await prisma.medecin.findMany({
+      where: {
+        utilisateur: {
+          status: 'ACTIF'
+        }
+      },
+      include: {
+        utilisateur: {
+          select: {
+            nom: true,
+            prenom: true,
+            email: true,
+            telephone: true
+          }
+        },
+        specialite: {
+          select: {
+            nom: true
+          }
+        },
+        hopitaux: {
+          include: {
+            hopital: {
+              select: {
+                id: true,
+                nom: true,
+                adresse: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        utilisateur: {
+          nom: 'asc'
+        }
+      }
+    })
+
+    // Transformer les données pour correspondre à l'interface Medecin
+    const medecinsFormatted = medecins.map(medecin => ({
+      id: medecin.id,
+      nom: medecin.utilisateur.nom,
+      prenom: medecin.utilisateur.prenom || '',
+      email: medecin.utilisateur.email,
+      telephone: medecin.utilisateur.telephone,
+      specialite: medecin.specialite?.nom || 'Non spécifiée',
+      tarif: 50, // Tarif par défaut (pas de champ tarif dans le modèle)
+      note: 4.5, // Note par défaut
+      experience: medecin.anneeExperience || 5, // Utiliser l'expérience réelle ou 5 par défaut
+      hopitaux: medecin.hopitaux.map(h => ({
+        id: h.hopital.id,
+        nom: h.hopital.nom,
+        adresse: h.hopital.adresse
+      }))
+    }))
+
+    return medecinsFormatted
+
+  } catch (error) {
+    console.error("Erreur lors de la récupération des médecins:", error)
+    throw new Error("Erreur lors de la récupération des médecins")
+  }
 }

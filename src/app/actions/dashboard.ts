@@ -1,7 +1,7 @@
 "use server"
 
 import { getUserInfo } from '@/services/users'
-import { obtenirSpecialiteMedecin } from '@/app/actions/medecin'
+
 import { obtenirStatistiquesRendezVous } from '@/app/actions/rendez-vous'
 
 export interface DashboardStats {
@@ -46,24 +46,12 @@ export async function obtenirDashboardMedecin() {
     }
 
     // Récupérer la spécialité du médecin
-    const specialiteResult = await obtenirSpecialiteMedecin()
+
     
-    if (!specialiteResult.success) {
-      return {
-        success: false,
-        error: "Impossible de récupérer la spécialité du médecin"
-      }
-    }
+
 
     // Récupérer les statistiques des rendez-vous
-    const rdvStatsResult = await obtenirStatistiquesRendezVous()
-    
-    if (!rdvStatsResult.success) {
-      return {
-        success: false,
-        error: "Impossible de récupérer les statistiques des rendez-vous"
-      }
-    }
+
 
     // Ici vous pouvez ajouter la logique pour récupérer les données depuis la base de données
     // const patients = await prisma.patient.count({
@@ -75,12 +63,12 @@ export async function obtenirDashboardMedecin() {
     // })
 
     const stats: DashboardStats = {
-      totalPatients: 0, // patients
-      rendezVousAujourdhui: rdvStatsResult.data?.rdvAujourdhui || 0,
-      hopitauxAffilies: 0, // hopitaux
-      specialite: specialiteResult.data?.nom || "Non spécifiée",
+      totalPatients: 0,
+      rendezVousAujourdhui: 0,
+      hopitauxAffilies: 0,
+      specialite: "Non spécifiée",
       nouveauxPatients: 0,
-      consultationsMois: rdvStatsResult.data?.totalRDV || 0,
+      consultationsMois: 0,
       revenusMois: 0,
       evolutionPatients: 0,
       evolutionConsultations: 0,

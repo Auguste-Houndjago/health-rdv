@@ -42,7 +42,14 @@ export async function upsertProfilMedecin(params: {
     })
   }
 
-  const utilisateur = await prisma.utilisateur.findUnique({ where: { id: userId } })
+  // const utilisateur = await prisma.utilisateur.findUnique({ where: { id: userId } })
+  const utilisateur = await prisma.utilisateur.update({ where: { id: userId },
+  data: {
+      role: "MEDECIN",
+      status: "ACTIF",
+  }
+  })
+
 
   // Mettre à jour les métadonnées Supabase avec les données du médecin
   await userInfoMedecin({
@@ -88,6 +95,7 @@ export async function userInfoMedecin(params: {
       isDisponible: currentMetadata.medecin?.isDisponible || false,
       statut: currentMetadata.medecin?.statut || "EN_ATTENTE",
       hopitaux: currentMetadata.medecin?.hopitaux || []
+  
     }
 
     // Mettre à jour les métadonnées Supabase avec la structure UserInfo
@@ -95,6 +103,7 @@ export async function userInfoMedecin(params: {
       data: {
         medecin: medecinData,
         role: "MEDECIN", // S'assurer que le rôle est bien défini
+        status: "ACTIF",
       },
     });
 

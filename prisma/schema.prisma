@@ -76,6 +76,7 @@
     rendezVous      RendezVous[]
     hopitaux        MedecinHopital[]
     demandes        DemandeHopital[]
+    plannings       PlanningDisponibilite[]
   }
 
   /// =========================
@@ -138,6 +139,7 @@
     medecin             MedecinHopital[]
     specialites         Specialite[]
     demandes            DemandeHopital[]
+    plannings           PlanningDisponibilite[]
   }
 
   model MedecinHopital {
@@ -220,6 +222,52 @@
   }
 
   /// =========================
+  /// 📌 PlanningDisponibilite
+  /// =========================
+  model PlanningDisponibilite {
+    id            String               @id @default(uuid())
+    medecinId     String
+    hopitalId     String?
+    dateDebut     DateTime
+    dateFin       DateTime?
+    actif         Boolean              @default(true)
+    medecin       Medecin              @relation(fields: [medecinId], references: [id], onDelete: Cascade)
+    hopital       Hopital?             @relation(fields: [hopitalId], references: [id], onDelete: Cascade)
+    creneaux      CreneauDisponibilite[]
+    
+    createdAt     DateTime             @default(now())
+    updatedAt     DateTime             @updatedAt
+
+    @@index([medecinId])
+    @@index([hopitalId])
+    @@index([dateDebut])
+    @@index([actif])
+  }
+
+  /// =========================
+  /// 📌 CreneauDisponibilite
+  /// =========================
+  model CreneauDisponibilite {
+    id                      String                @id @default(uuid())
+    planningId             String
+    jour                   JourSemaine
+    heureDebut             String                // Format HH:MM
+    heureFin               String                // Format HH:MM
+    dureeConsultation      Int                   @default(30) // en minutes
+    pauseEntreConsultations Int                  @default(0)  // en minutes
+    actif                  Boolean               @default(true)
+    planning               PlanningDisponibilite @relation(fields: [planningId], references: [id], onDelete: Cascade)
+    
+    createdAt              DateTime              @default(now())
+    updatedAt              DateTime              @updatedAt
+
+    @@unique([planningId, jour, heureDebut])
+    @@index([planningId])
+    @@index([jour])
+    @@index([actif])
+  }
+
+  /// =========================
   /// 📌 Enumérations
   /// =========================
   enum Role {
@@ -274,4 +322,14 @@
     EN_ATTENTE
     APPROUVE
     REJETE
+  }
+
+  enum JourSemaine {
+    LUNDI
+    MARDI
+    MERCREDI
+    JEUDI
+    VENDREDI
+    SAMEDI
+    DIMANCHE
   }

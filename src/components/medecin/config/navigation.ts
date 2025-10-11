@@ -7,7 +7,8 @@ import {
     FileText,
     BarChart3,
     Bell,
-    Settings
+    Settings,
+    CalendarCheck
   } from "lucide-react";
 
 export const navigationItems = [
@@ -28,6 +29,12 @@ export const navigationItems = [
       href: "/medecin/rendez-vous",
       icon: Calendar,
       description: "Gérer mes RDV"
+    },
+    {
+      name: "Disponibilités",
+      href: "/medecin/disponibilites",
+      icon: CalendarCheck,
+      description: "Gérer mes disponibilités"
     },
     {
       name: "Hôpitaux",
