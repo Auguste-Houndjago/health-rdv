@@ -3,12 +3,16 @@ import React from "react"
 import HopitalCard from "./HopitalCard"
 
 import  {getHopitaux} from "@/services/hopitaux"
+import { cn } from "@/lib/utils";
 
-export default async function HopitalList() {
+interface HopitalListProps {
+  className?: string;
+}
+export default async function HopitalList({className}: HopitalListProps) {
   const hopitaux = await getHopitaux()
 
   return (
-    <div className="p-6 mx-auto">
+    <div className={cn("p-6 mx-auto", className)}>
  <h1 className="text-2xl font-bold mb-6 text-center md:text-left">
   Liste des Hôpitaux
 </h1>

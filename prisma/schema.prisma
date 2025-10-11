@@ -75,6 +75,7 @@
     recommandations Recommandation[]
     rendezVous      RendezVous[]
     hopitaux        MedecinHopital[]
+    demandes        DemandeHopital[]
   }
 
   /// =========================
@@ -136,6 +137,7 @@
     rendevous           RendezVous[]
     medecin             MedecinHopital[]
     specialites         Specialite[]
+    demandes            DemandeHopital[]
   }
 
   model MedecinHopital {
@@ -194,6 +196,30 @@
   }
 
   /// =========================
+  /// 📌 DemandeHopital
+  /// =========================
+  model DemandeHopital {
+    id            String           @id @default(uuid())
+    medecinId     String
+    hopitalId     String
+    statut        StatutDemande    @default(EN_ATTENTE)
+    message       String?
+    dateDemande   DateTime         @default(now())
+    dateReponse   DateTime?
+    reponse       String?
+    medecin       Medecin          @relation(fields: [medecinId], references: [id], onDelete: Cascade)
+    hopital       Hopital          @relation(fields: [hopitalId], references: [id], onDelete: Cascade)
+    
+    createdAt     DateTime         @default(now())
+    updatedAt     DateTime         @updatedAt
+
+    @@unique([medecinId, hopitalId])
+    @@index([medecinId])
+    @@index([hopitalId])
+    @@index([statut])
+  }
+
+  /// =========================
   /// 📌 Enumérations
   /// =========================
   enum Role {
@@ -239,6 +265,12 @@
   }
 
   enum StatutApproval {
+    EN_ATTENTE
+    APPROUVE
+    REJETE
+  }
+
+  enum StatutDemande {
     EN_ATTENTE
     APPROUVE
     REJETE
