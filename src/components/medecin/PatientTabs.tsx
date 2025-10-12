@@ -12,20 +12,16 @@ export default function MedecinsTabs() {
       trigger:"Rendez-vous",
       content: (
         <div>
-          <h2 className="font-semibold mb-2">Profil</h2>
-          <p>Nom : Auguste</p>
-          <p>Email : august@example.com</p>
+
         </div>
       ),
     },
     {
       value: "parametres",
-      trigger:"dd",
+      trigger:"parametres",
       content: (
         <div>
-          <h2 className="font-semibold mb-2">Préférences</h2>
-          <p>Langue : Français</p>
-          <p>Thème : Sombre</p>
+    
         </div>
       ),
     },

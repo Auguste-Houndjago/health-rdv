@@ -24,9 +24,6 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  User,
-  Phone,
-  Mail,
   FileText,
   MoreHorizontal,
   Loader2

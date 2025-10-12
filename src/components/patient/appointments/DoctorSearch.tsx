@@ -157,8 +157,6 @@ export default function DoctorSearch({ onMedecinSelect }: DoctorSearchProps) {
         nom: null,
         adresse: ''
       },
-      tarif: 50, // Valeur par défaut pour l'affichage
-      note: 4.5, // Valeur par défaut pour l'affichage
       experience: medecinWithHopitaux.experience
     }
     onMedecinSelect(medecin)

@@ -37,6 +37,7 @@ export interface RendezVousPatient {
       nom: string
       adresse: string
     }
+    experience: number
   }
   date: string
   heure: string
@@ -286,7 +287,8 @@ export async function creerRendezVousPatient(params: CreerRendezVousParams) {
             id: hopitalInfo?.id || '',
             nom: hopitalInfo?.nom || '',
             adresse: hopitalInfo?.adresse || ''
-          }
+          },
+          experience: 5 // Default experience value
         },
         date: rendezVous.date.toISOString().split('T')[0],
         heure: rendezVous.date.toTimeString().slice(0, 5),
@@ -356,14 +358,15 @@ export async function getRendezVousPatient() {
           id: rdv.hopital?.id || '',
           nom: rdv.hopital?.nom || '',
           adresse: rdv.hopital?.adresse || ''
-        }
+        },
+        experience: rdv.medecin.anneeExperience || 1 // Default experience value
       },
       date: rdv.date.toISOString().split('T')[0],
       heure: rdv.date.toTimeString().slice(0, 5),
       duree: rdv.duree,
       motif: rdv.motif || '',
       statut: rdv.statut,
-      hopitalId: rdv.hopitalId
+      hopitalId: rdv.hopitalId,
     }))
 
     return {

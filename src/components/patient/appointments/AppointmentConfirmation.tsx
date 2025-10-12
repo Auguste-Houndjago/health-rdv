@@ -115,9 +115,7 @@ export default function AppointmentConfirmation({
                 </span>
               </div>
             </div>
-            <Badge variant="secondary">
-              {medecin.note}/5 ⭐
-            </Badge>
+
           </div>
 
           <Separator />
@@ -149,18 +147,6 @@ export default function AppointmentConfirmation({
             </div>
           </div>
 
-          <Separator />
-
-          {/* Informations financières */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Euro className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">Tarif de la consultation</span>
-            </div>
-            <Badge variant="outline" className="text-lg font-semibold">
-              {medecin.tarif}€
-            </Badge>
-          </div>
         </CardContent>
       </Card>
 

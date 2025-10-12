@@ -17,9 +17,6 @@ export default function MedecinDashboard() {
     return [result];
   };
 
-
-
-
   const {loading, error, data} = useEntityFilter<MedecinInfoPayload>({
     entityName: "getMedecinInfo",
     fetchFn: fetchMedecinInfo,
@@ -33,10 +30,8 @@ export default function MedecinDashboard() {
 
   const medecinId = medecinInfo?.id;
   
-  const {loading:loadingRdv, error:errorRdv, data:rdvData} = useEntityFilter<MedecinRendezVousType>({
-    entityName: "getRdvByMedecinId",
-    fetchFn: async () => getRdvByMedecinId({medecinId: medecinId}),
-  });
+
+  
 
 
   return (
@@ -59,7 +54,7 @@ export default function MedecinDashboard() {
 
         </div>
         <div className="border flex justify-between ">
-        <SpecialiteCard specialite={specialite} className=" " />
+        <SpecialiteCard specialite={specialite}  />
         </div>
     
       </div>

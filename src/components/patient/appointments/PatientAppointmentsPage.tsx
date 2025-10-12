@@ -20,8 +20,6 @@ export interface Medecin {
     nom: string
     adresse: string
   }
-  tarif: number
-  note: number
   experience: number
 }
 

@@ -88,56 +88,7 @@ export default function DisponibiliteCalendar({
 
   return (
     <div className="space-y-6">
-      {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-blue-600" />
-              <div>
-                <p className="text-sm text-gray-600">Total plannings</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <div>
-                <p className="text-sm text-gray-600">Actifs</p>
-                <p className="text-2xl font-bold">{stats.actifs}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Building className="w-5 h-5 text-purple-600" />
-              <div>
-                <p className="text-sm text-gray-600">Avec hôpital</p>
-                <p className="text-2xl font-bold">{stats.avecHopital}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <XCircle className="w-5 h-5 text-orange-600" />
-              <div>
-                <p className="text-sm text-gray-600">Sans hôpital</p>
-                <p className="text-2xl font-bold">{stats.sansHopital}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Calendrier */}
       <Card>

@@ -7,6 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { 
   Users, 
   Calendar, 
@@ -19,76 +23,102 @@ import {
   Activity,
   BarChart3,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Edit,
+  Save,
+  X,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Award,
+  GraduationCap
 } from "lucide-react";
 import { toast } from "sonner";
-import { 
-  obtenirDashboardMedecin,
-  obtenirPatientsRecents,
-  obtenirRendezVousAujourdhui,
-  obtenirStatistiquesAvancees,
-  type DashboardStats,
-  type PatientRecent,
-  type RendezVousAujourdhui
-} from "@/app/actions/dashboard";
-import QuickStats from "@/components/medecin/QuickStats";
-import SpecialiteCard from "@/components/specialite/SpecialiteCard";
+import { getMedecinProfile, updateMedecinProfile, type MedecinProfile } from "@/services/medecins/specialite";
 
-export default function MedecinDashboard() {
+export default function MedecinProfile() {
   const [activeTab, setActiveTab] = useState("overview");
-  const [stats, setStats] = useState<DashboardStats>({
-    totalPatients: 0,
-    rendezVousAujourdhui: 0,
-    hopitauxAffilies: 0,
-    specialite: "Non spécifiée",
-    nouveauxPatients: 0,
-    consultationsMois: 0,
-    revenusMois: 0,
-    evolutionPatients: 0,
-    evolutionConsultations: 0,
-    evolutionRevenus: 0
-  });
-  const [patientsRecents, setPatientsRecents] = useState<PatientRecent[]>([]);
-  const [rendezVousAujourdhui, setRendezVousAujourdhui] = useState<RendezVousAujourdhui[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<MedecinProfile | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState({
+    nom: '',
+    prenom: '',
+    telephone: '',
+    dateNaissance: '',
+    anneeExperience: 0,
+    titre: '',
+    isDisponible: true
+  });
 
-  // Charger les données au montage du composant
   useEffect(() => {
-    chargerDonnees();
+    loadProfile();
   }, []);
 
-  const chargerDonnees = async () => {
-    setLoading(true);
+  const loadProfile = async () => {
     try {
-      const [statsResult, patientsResult, rdvResult] = await Promise.all([
-        obtenirDashboardMedecin(),
-        obtenirPatientsRecents(),
-        obtenirRendezVousAujourdhui()
-      ]);
-
-      if (statsResult.success) {
-        setStats(statsResult.data || stats);
+    setLoading(true);
+      const result = await getMedecinProfile();
+      
+      if (result.success) {
+        setProfile(result.data);
+        setEditData({
+          nom: result.data.nom,
+          prenom: result.data.prenom,
+          telephone: result.data.telephone,
+          dateNaissance: result.data.dateNaissance || '',
+          anneeExperience: result.data.anneeExperience,
+          titre: result.data.titre,
+          isDisponible: result.data.isDisponible
+        });
       } else {
-        toast.error(statsResult.error || "Erreur lors du chargement des statistiques");
+        toast.error(result.error || 'Erreur lors du chargement');
       }
-
-      if (patientsResult.success) {
-        setPatientsRecents(patientsResult.data || []);
-      }
-
-      if (rdvResult.success) {
-        setRendezVousAujourdhui(rdvResult.data || []);
-      }
-    } catch (error) {
-      console.error("Erreur lors du chargement des données:", error);
-      toast.error("Erreur lors du chargement des données");
+    } catch (err) {
+      toast.error('Erreur lors du chargement du profil');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    if (profile) {
+      setEditData({
+        nom: profile.nom,
+        prenom: profile.prenom,
+        telephone: profile.telephone,
+        dateNaissance: profile.dateNaissance || '',
+        anneeExperience: profile.anneeExperience,
+        titre: profile.titre,
+        isDisponible: profile.isDisponible
+      });
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const result = await updateMedecinProfile(editData);
+      
+      if (result.success) {
+        toast.success(result.message || 'Profil mis à jour avec succès');
+        setIsEditing(false);
+        await loadProfile();
+      } else {
+        toast.error(result.error || 'Erreur lors de la mise à jour');
+      }
+    } catch (err) {
+      toast.error('Erreur lors de la mise à jour du profil');
+    }
+  };
+
   const handleRefresh = () => {
-    chargerDonnees();
+    loadProfile();
   };
 
   if (loading) {
@@ -97,9 +127,29 @@ export default function MedecinDashboard() {
         <div className="flex items-center justify-center h-64">
           <div className="flex items-center space-x-2">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <span>Chargement du dashboard...</span>
+            <span>Chargement du profil...</span>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="text-center py-8">
+            <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Profil non trouvé</h3>
+            <p className="text-muted-foreground">
+              Impossible de charger votre profil médecin
+            </p>
+            <Button onClick={handleRefresh} className="mt-4">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Réessayer
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -109,9 +159,9 @@ export default function MedecinDashboard() {
       {/* En-tête */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Tableau de Bord Médecin</h1>
+          <h1 className="text-3xl font-bold">Mon Profil Médecin</h1>
           <p className="text-muted-foreground">
-            Bienvenue, Dr.  - Spécialité: {stats.specialite}
+            Dr. {profile.prenom} {profile.nom} - {profile.specialite.nom}
           </p>
         </div>
         <div className="flex gap-2">
@@ -119,266 +169,412 @@ export default function MedecinDashboard() {
             <RefreshCw className="h-4 w-4 mr-2" />
             Actualiser
           </Button>
-          <Button variant="outline">
-            <Activity className="h-4 w-4 mr-2" />
-            Activité
+          {!isEditing ? (
+            <Button onClick={handleEdit}>
+              <Edit className="h-4 w-4 mr-2" />
+              Modifier
+            </Button>
+          ) : (
+            <>
+              <Button variant="outline" onClick={handleCancel}>
+                <X className="h-4 w-4 mr-2" />
+                Annuler
           </Button>
-          <Button>
-            <Calendar className="h-4 w-4 mr-2" />
-            Nouveau RDV
+              <Button onClick={handleSave}>
+                <Save className="h-4 w-4 mr-2" />
+                Sauvegarder
           </Button>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Cartes de statistiques */}
-      <div className="flex justify-between gap-4">
-      <QuickStats stats={stats} />
-      <SpecialiteCard  />
-      </div>
+      {/* Informations principales */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Profil principal */}
+        <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+              <User className="h-5 w-5 mr-2" />
+              Informations personnelles
+                </CardTitle>
+            <CardDescription>
+              Vos informations de base et contact
+            </CardDescription>
+              </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-20 w-20">
+                <AvatarFallback className="text-lg">
+                  {profile.prenom[0]}{profile.nom[0]}
+                </AvatarFallback>
+              </Avatar>
+                      <div>
+                <h3 className="text-xl font-semibold">
+                  Dr. {profile.prenom} {profile.nom}
+                </h3>
+                <p className="text-muted-foreground">{profile.titre}</p>
+                <Badge variant={profile.isDisponible ? "default" : "secondary"}>
+                  {profile.isDisponible ? "Disponible" : "Indisponible"}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="nom">Nom</Label>
+                {isEditing ? (
+                  <Input
+                    id="nom"
+                    value={editData.nom}
+                    onChange={(e) => setEditData({...editData, nom: e.target.value})}
+                  />
+                ) : (
+                  <p className="text-sm">{profile.nom}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="prenom">Prénom</Label>
+                {isEditing ? (
+                  <Input
+                    id="prenom"
+                    value={editData.prenom}
+                    onChange={(e) => setEditData({...editData, prenom: e.target.value})}
+                  />
+                ) : (
+                  <p className="text-sm">{profile.prenom}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <p className="text-sm flex items-center">
+                  <Mail className="h-4 w-4 mr-2" />
+                  {profile.email}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="telephone">Téléphone</Label>
+                {isEditing ? (
+                  <Input
+                    id="telephone"
+                    value={editData.telephone}
+                    onChange={(e) => setEditData({...editData, telephone: e.target.value})}
+                  />
+                ) : (
+                  <p className="text-sm flex items-center">
+                    <Phone className="h-4 w-4 mr-2" />
+                    {profile.telephone}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dateNaissance">Date de naissance</Label>
+                {isEditing ? (
+                  <Input
+                    id="dateNaissance"
+                    type="date"
+                    value={editData.dateNaissance}
+                    onChange={(e) => setEditData({...editData, dateNaissance: e.target.value})}
+                  />
+                ) : (
+                  <p className="text-sm">{profile.dateNaissance || 'Non renseignée'}</p>
+                )}
+                      </div>
+              <div className="space-y-2">
+                <Label htmlFor="titre">Titre professionnel</Label>
+                {isEditing ? (
+                  <Input
+                    id="titre"
+                    value={editData.titre}
+                    onChange={(e) => setEditData({...editData, titre: e.target.value})}
+                  />
+                ) : (
+                  <p className="text-sm">{profile.titre}</p>
+                )}
+                    </div>
+                </div>
+              </CardContent>
+            </Card>
+
+        {/* Informations professionnelles */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+              <Stethoscope className="h-5 w-5 mr-2" />
+              Informations professionnelles
+                </CardTitle>
+              </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>Spécialité</Label>
+              <div className="flex items-center space-x-2">
+                <Award className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium">{profile.specialite.nom}</span>
+                        </div>
+                      </div>
+
+            <div className="space-y-2">
+              <Label>Numéro de licence</Label>
+              <p className="text-sm font-mono">{profile.numLicence}</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Années d'expérience</Label>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={editData.anneeExperience}
+                  onChange={(e) => setEditData({...editData, anneeExperience: parseInt(e.target.value) || 0})}
+                />
+              ) : (
+                <p className="text-sm">{profile.anneeExperience} ans</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Statut</Label>
+              <Badge variant={profile.statut === 'APPROUVE' ? 'default' : 'secondary'}>
+                {profile.statut === 'APPROUVE' ? 'Approuvé' : 'En attente'}
+                      </Badge>
+                    </div>
+
+            <div className="space-y-2">
+              <Label>Disponibilité</Label>
+              {isEditing ? (
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={editData.isDisponible}
+                    onCheckedChange={(checked) => setEditData({...editData, isDisponible: checked})}
+                  />
+                  <span className="text-sm">{editData.isDisponible ? 'Disponible' : 'Indisponible'}</span>
+                </div>
+              ) : (
+                <p className="text-sm">{profile.isDisponible ? 'Disponible' : 'Indisponible'}</p>
+              )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
       {/* Onglets principaux */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Aperçu</TabsTrigger>
-          <TabsTrigger value="patients">Patients</TabsTrigger>
-          <TabsTrigger value="rendez-vous">Rendez-vous</TabsTrigger>
+          <TabsTrigger value="overview">Spécialité</TabsTrigger>
+          <TabsTrigger value="hopitaux">Hôpitaux</TabsTrigger>
+          <TabsTrigger value="statistiques">Statistiques</TabsTrigger>
         </TabsList>
 
-        {/* Onglet Aperçu */}
+        {/* Onglet Spécialité */}
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Rendez-vous d'aujourd'hui */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Clock className="h-4 w-4 mr-2" />
-                  Rendez-vous d'aujourd'hui
+                <Stethoscope className="h-5 w-5 mr-2" />
+                Ma Spécialité
                 </CardTitle>
-                <CardDescription>Votre planning du jour</CardDescription>
+              <CardDescription>
+                Informations détaillées sur votre spécialité médicale
+              </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {rendezVousAujourdhui.map((rdv) => (
-                    <div key={rdv.id} className="flex justify-between items-center p-3 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{rdv.patient}</p>
-                        <p className="text-sm text-muted-foreground">{rdv.motif}</p>
-                      </div>
-                      <Badge variant="outline">{rdv.heure}</Badge>
-                    </div>
-                  ))}
+            <CardContent className="space-y-6">
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-blue-100 rounded-lg">
+                  <Award className="h-8 w-8 text-blue-600" />
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <h3 className="text-xl font-semibold">{profile.specialite.nom}</h3>
+                  <p className="text-muted-foreground">{profile.specialite.description}</p>
+                </div>
+              </div>
 
-            {/* Patients récents */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="h-4 w-4 mr-2" />
-                  Patients récents
-                </CardTitle>
-                <CardDescription>Dernières consultations</CardDescription>
-              </CardHeader>
-              <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  {patientsRecents.map((patient) => (
-                    <div key={patient.id} className="flex justify-between items-center">
-                      <div className="flex items-center space-x-3">
-                        <Avatar>
-                          <AvatarFallback>
-                            {patient.prenom[0]}{patient.nom[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="font-medium">{patient.prenom} {patient.nom}</p>
-                          <p className="text-sm text-muted-foreground">{patient.maladie}</p>
-                        </div>
-                      </div>
-                      <Badge variant="secondary">
-                        {patient.derniereVisite}
+                  <div>
+                    <Label className="text-sm font-medium">Formation requise</Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      DES {profile.specialite.nom} (4 ans)
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Votre expérience</Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {profile.anneeExperience} ans d'expérience
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium">Statut d'approbation</Label>
+                    <div className="mt-1">
+                      <Badge variant={profile.statut === 'APPROUVE' ? 'default' : 'secondary'}>
+                        {profile.statut === 'APPROUVE' ? 'Approuvé' : 'En attente d\'approbation'}
                       </Badge>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Widgets d'aide au diagnostic */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Classification des maladies
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Cardiologie</span>
-                    <span className="text-sm font-medium">45%</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Endocrinologie</span>
-                    <span className="text-sm font-medium">30%</span>
+                  <div>
+                    <Label className="text-sm font-medium">Disponibilité</Label>
+                    <div className="mt-1">
+                      <Badge variant={profile.isDisponible ? 'default' : 'secondary'}>
+                        {profile.isDisponible ? 'Disponible pour consultations' : 'Indisponible'}
+                      </Badge>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">Autres</span>
-                    <span className="text-sm font-medium">25%</span>
+                  </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Tendances
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Nouveaux patients</span>
-                    <span className="text-sm font-medium text-green-600">+12%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">RDV cette semaine</span>
-                    <span className="text-sm font-medium">24</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Statut
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-sm">Patients actifs</span>
-                    <Badge variant="default">142</Badge>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm">En attente</span>
-                    <Badge variant="secondary">14</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </TabsContent>
 
-        {/* Onglet Patients */}
-        <TabsContent value="patients" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Mes Patients</CardTitle>
+        {/* Onglet Hôpitaux */}
+        <TabsContent value="hopitaux" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                <Building2 className="h-5 w-5 mr-2" />
+                Mes Hôpitaux
+                </CardTitle>
               <CardDescription>
-                Liste de tous vos patients avec leurs informations médicales
+                Hôpitaux où vous exercez votre spécialité
               </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Patient</TableHead>
-                    <TableHead>Maladie</TableHead>
-                    <TableHead>Dernière visite</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {patientsRecents.map((patient) => (
-                    <TableRow key={patient.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <Avatar>
-                            <AvatarFallback>
-                              {patient.prenom[0]}{patient.nom[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{patient.prenom} {patient.nom}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{patient.maladie}</Badge>
-                      </TableCell>
-                      <TableCell>{patient.derniereVisite}</TableCell>
-                      <TableCell>
-                        <Badge variant="default">Actif</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button variant="outline" size="sm">
-                            Voir
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            Éditer
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+              </CardHeader>
+              <CardContent>
+              {profile.hopitaux.length === 0 ? (
+                <div className="text-center py-8">
+                  <Building2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">Aucun hôpital associé</h3>
+                  <p className="text-muted-foreground">
+                    Vous n'êtes pas encore affilié à un hôpital
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {profile.hopitaux.map((hopital) => (
+                    <Card key={hopital.id} className="hover:shadow-lg transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start space-x-3">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <Building2 className="h-5 w-5 text-blue-600" />
+                  </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold">{hopital.nom}</h4>
+                            <p className="text-sm text-muted-foreground flex items-center mt-1">
+                              <MapPin className="h-4 w-4 mr-1" />
+                              {hopital.adresse}
+                            </p>
+                  </div>
+                </div>
+                      </CardContent>
+                    </Card>
                   ))}
-                </TableBody>
-              </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Onglet Rendez-vous */}
-        <TabsContent value="rendez-vous" className="space-y-6">
+        {/* Onglet Statistiques */}
+        <TabsContent value="statistiques" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Années d'expérience</CardTitle>
+                <GraduationCap className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{profile.anneeExperience}</div>
+                <p className="text-xs text-muted-foreground">
+                  ans d'expérience
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Spécialité</CardTitle>
+                <Stethoscope className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{profile.specialite.nom}</div>
+                <p className="text-xs text-muted-foreground">
+                  Spécialité médicale
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Hôpitaux</CardTitle>
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{profile.hopitaux.length}</div>
+                <p className="text-xs text-muted-foreground">
+                  Hôpitaux affiliés
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Statut</CardTitle>
+                <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  <Badge variant={profile.statut === 'APPROUVE' ? 'default' : 'secondary'}>
+                    {profile.statut === 'APPROUVE' ? 'Approuvé' : 'En attente'}
+                  </Badge>
+                  </div>
+                <p className="text-xs text-muted-foreground">
+                  Statut d'approbation
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
-              <CardTitle>Mes Rendez-vous</CardTitle>
+              <CardTitle className="flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2" />
+                Informations du compte
+              </CardTitle>
               <CardDescription>
-                Gestion de votre planning et des rendez-vous
+                Détails de votre compte médecin
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Patient</TableHead>
-                    <TableHead>Date/Heure</TableHead>
-                    <TableHead>Motif</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rendezVousAujourdhui.map((rdv) => (
-                    <TableRow key={rdv.id}>
-                      <TableCell className="font-medium">{rdv.patient}</TableCell>
-                      <TableCell>{rdv.heure}</TableCell>
-                      <TableCell>{rdv.motif}</TableCell>
-                      <TableCell>
-                        <Badge variant="default">Confirmé</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button variant="outline" size="sm">
-                            Modifier
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            Annuler
-                          </Button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium">Date de création</Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {new Date(profile.createdAt).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Dernière mise à jour</Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {new Date(profile.updatedAt).toLocaleDateString('fr-FR')}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium">Numéro de licence</Label>
+                    <p className="text-sm font-mono text-muted-foreground mt-1">
+                      {profile.numLicence}
+                    </p>
+                  </div>
+                          <div>
+                    <Label className="text-sm font-medium">Disponibilité</Label>
+                    <div className="mt-1">
+                      <Badge variant={profile.isDisponible ? 'default' : 'secondary'}>
+                        {profile.isDisponible ? 'Disponible' : 'Indisponible'}
+                      </Badge>
+                          </div>
                         </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                        </div>
+                        </div>
             </CardContent>
           </Card>
         </TabsContent>
