@@ -9,9 +9,57 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, MapPin, Star, Clock, Euro, User } from 'lucide-react'
 import { Medecin } from './PatientAppointmentsPage'
 import { useEntityFilter } from '@/hooks/entity/useEntityFilter'
-import { getAllMedecins } from '@/app/actions/medecin'
+import { getHopitauxWithDetails } from '@/services/hopitaux/actions'
 
-// Type pour les médecins avec hôpitaux multiples
+// Type pour les hôpitaux avec détails complets
+interface HopitalWithDetails {
+  id: string
+  nom: string
+  adresse: string
+  description?: string
+  image?: string
+  url?: string
+  contact: string
+  localisation?: string
+  slug?: string
+  fuseauHoraire: string
+  medecins: Array<{
+    id: string
+    numLicence: string
+    anneeExperience?: number
+    titre: string
+    isDisponible: boolean
+    utilisateur: {
+      id: string
+      nom: string
+      prenom: string
+      email: string
+      telephone?: string
+      avatarUrl?: string
+    }
+    specialite: {
+      id: string
+      nom: string
+    }
+  }>
+  specialites: Array<{
+    id: string
+    nom: string
+    image?: string
+    description?: string
+  }>
+  utilisateurs: Array<{
+    id: string
+    nom: string
+    prenom: string
+    email: string
+    role: string
+    dateDebut: Date
+    dateFin?: Date
+  }>
+}
+
+// Type pour les médecins avec hôpitaux multiples (pour compatibilité)
 interface MedecinWithHopitaux {
   id: string
   nom: string
@@ -19,8 +67,6 @@ interface MedecinWithHopitaux {
   email: string
   telephone: string | null
   specialite: string
-  tarif: number
-  note: number
   experience: number
   hopitaux: Array<{
     id: string
@@ -38,14 +84,32 @@ export default function DoctorSearch({ onMedecinSelect }: DoctorSearchProps) {
   const [specialite, setSpecialite] = useState('all')
   const [hopital, setHopital] = useState('all')
 
-  // Utilisation du hook useEntityFilter pour récupérer les médecins
-  const { data, loading, error } = useEntityFilter<MedecinWithHopitaux>({
-    entityName: "getAllMedecins",
-    fetchFn: getAllMedecins
+  // Utilisation du hook useEntityFilter pour récupérer les hôpitaux avec détails
+  const { data: hopitauxData, loading, error } = useEntityFilter<HopitalWithDetails>({
+    entityName: "getHopitauxWithDetails",
+    fetchFn: getHopitauxWithDetails
   })
 
+  // Extraction des médecins de tous les hôpitaux
+  const allMedecins = hopitauxData?.items?.flatMap(hopital => 
+    hopital.medecins.map(medecin => ({
+      id: medecin.id,
+      nom: medecin.utilisateur.nom,
+      prenom: medecin.utilisateur.prenom,
+      email: medecin.utilisateur.email,
+      telephone: medecin.utilisateur.telephone,
+      specialite: medecin.specialite.nom,
+      experience: medecin.anneeExperience || 1,
+      hopitaux: [{
+        id: hopital.id,
+        nom: hopital.nom,
+        adresse: hopital.adresse
+      }]
+    }))
+  ) || []
+
   // Filtrage côté client pour les critères de recherche
-  const filteredMedecins = (data?.items || []).filter(medecin => {
+  const filteredMedecins = allMedecins.filter(medecin => {
     // Filtre par nom/prénom
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
@@ -70,26 +134,16 @@ export default function DoctorSearch({ onMedecinSelect }: DoctorSearchProps) {
     return true
   })
 
-  const specialites = [
-    'Cardiologie',
-    'Dermatologie',
-    'Gynécologie',
-    'Neurologie',
-    'Ophtalmologie',
-    'Orthopédie',
-    'Pédiatrie',
-    'Psychiatrie',
-    'Radiologie',
-    'Urologie'
-  ]
 
-  const hopitaux = [
-    'Hôpital Central',
-    'Clinique Saint-Pierre',
-    'Centre Médical Nord',
-    'Hôpital Universitaire',
-    'Clinique du Sud'
-  ]
+  // Extraction des spécialités uniques de tous les hôpitaux
+  const specialites = Array.from(new Set(
+    hopitauxData?.items?.flatMap(hopital => 
+      hopital.specialites.map(spec => spec.nom)
+    ) || []
+  )).sort() as string[]
+
+  // Extraction des noms d'hôpitaux uniques
+  const hopitaux = hopitauxData?.items?.map(hopital => hopital.nom) || []
 
   const handleMedecinClick = (medecinWithHopitaux: MedecinWithHopitaux) => {
     // Transformer le médecin avec hôpitaux multiples en format Medecin
@@ -100,11 +154,11 @@ export default function DoctorSearch({ onMedecinSelect }: DoctorSearchProps) {
       specialite: medecinWithHopitaux.specialite,
       hopital: medecinWithHopitaux.hopitaux[0] || {
         id: '',
-        nom: 'Non spécifié',
+        nom: null,
         adresse: ''
       },
-      tarif: medecinWithHopitaux.tarif,
-      note: medecinWithHopitaux.note,
+      tarif: 50, // Valeur par défaut pour l'affichage
+      note: 4.5, // Valeur par défaut pour l'affichage
       experience: medecinWithHopitaux.experience
     }
     onMedecinSelect(medecin)
@@ -218,16 +272,6 @@ export default function DoctorSearch({ onMedecinSelect }: DoctorSearchProps) {
                 </CardHeader>
                 
                 <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span>{medecin.note}/5</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Euro className="h-4 w-4" />
-                      <span>{medecin.tarif}€</span>
-                    </div>
-                  </div>
                   
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4" />

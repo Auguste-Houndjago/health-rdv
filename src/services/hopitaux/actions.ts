@@ -35,6 +35,114 @@ export async function getHopitaux() {
   return hopitaux;
 }
 
+
+
+export type HopitalWithDetails = Awaited<ReturnType<typeof getHopitauxWithDetails>>[number];
+
+export async function getHopitauxWithDetails() {
+  try {
+    const hopitaux = await prisma.hopital.findMany({
+      include: {
+        // Inclure les spécialités de l'hôpital
+        specialites: {
+          select: {
+            id: true,
+            nom: true,
+            image: true,
+            description: true
+          }
+        },
+        // Inclure les médecins de l'hôpital avec leurs détails
+        medecin: {
+          include: {
+            medecin: {
+              include: {
+                utilisateur: {
+                  select: {
+                    id: true,
+                    nom: true,
+                    prenom: true,
+                    email: true,
+                    telephone: true,
+                    avatarUrl: true
+                  }
+                },
+                specialite: {
+                  select: {
+                    id: true,
+                    nom: true
+                  }
+                }
+              },
+            }
+          }
+        },
+        // Inclure les utilisateurs associés à l'hôpital
+        utilisateurHopitals: {
+          include: {
+            utilisateur: {
+              select: {
+                id: true,
+                nom: true,
+                prenom: true,
+                email: true,
+                role: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        nom: 'asc'
+      }
+    });
+
+    // Transformer les données pour un format plus pratique
+    const hopitauxFormatted = hopitaux.map(hopital => ({
+      id: hopital.id,
+      nom: hopital.nom,
+      adresse: hopital.adresse,
+      description: hopital.description,
+      image: hopital.image,
+      url: hopital.url,
+      contact: hopital.contact,
+      localisation: hopital.localisation,
+      slug: hopital.slug,
+      fuseauHoraire: hopital.fuseauHoraire,
+      // Médecins avec leurs informations complètes
+      medecins: hopital.medecin.map(mh => ({
+        id: mh.medecin.id,
+        numLicence: mh.medecin.numLicence,
+        anneeExperience: mh.medecin.anneeExperience,
+        titre: mh.medecin.titre,
+        isDisponible: mh.medecin.isDisponible,
+        utilisateur: mh.medecin.utilisateur,
+        specialite: mh.medecin.specialite
+      })),
+      // Spécialités disponibles dans l'hôpital
+      specialites: hopital.specialites,
+      // Utilisateurs associés à l'hôpital
+      utilisateurs: hopital.utilisateurHopitals.map(uh => ({
+        id: uh.utilisateur.id,
+        nom: uh.utilisateur.nom,
+        prenom: uh.utilisateur.prenom,
+        email: uh.utilisateur.email,
+        role: uh.utilisateur.role,
+        dateDebut: uh.dateDebut,
+        dateFin: uh.dateFin
+      }))
+    }));
+
+    return hopitauxFormatted;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des hôpitaux:", error);
+    throw new Error("Impossible de récupérer les informations des hôpitaux");
+  }
+}
+
+
+
+
 export async function createHopital(formData: FormData) {
   const rawData = {
     nom: formData.get("nom") as string,

@@ -347,6 +347,22 @@ export async function getDemandesHopital(hopitalId?: string) {
   }
 }
 
+
+export async function addHopitalToMedecin(medecinId: string, hopitalId: string) {
+  try {
+    const liaison = await prisma.medecinHopital.create({
+      data: {
+        medecinId: medecinId,
+        hopitalId: hopitalId
+      }
+    });
+
+    return liaison;
+  } catch (error) {
+    console.error("Erreur:", error);
+    throw new Error("Impossible d'ajouter l'hôpital au médecin");
+  }
+}
 /**
  * Mettre à jour le statut d'une demande (pour les administrateurs)
  */
@@ -362,46 +378,56 @@ export async function mettreAJourStatutDemande({
   try {
     const user = await getUserInfo();
     
+    // Vérification des permissions (à décommenter si nécessaire)
     // if (user?.role !== "ADMIN") {
-    //     return {
-    //       success: false,
-    //       error: "Accès non autorisé"
-    //     };
-    //   }
+    //   return { success: false, error: "Accès non autorisé" };
+    // }
 
-    const demande = await prisma.demandeHopital.update({
-      where: {
-        id: demandeId
-      },
-      data: {
-        statut: statut,
-        reponse: reponse,
-        dateReponse: new Date()
-      },
-      include: {
-        medecin: {
-          select: {
-            id: true,
-            utilisateur: {
-              select: {
-                email: true,
-                nom: true,
-                prenom: true
+    // Utilisation d'une transaction pour plus de sécurité
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Mettre à jour la demande
+      const demande = await tx.demandeHopital.update({
+        where: { id: demandeId },
+        data: {
+          statut: statut,
+          reponse: reponse,
+          dateReponse: new Date()
+        },
+        include: {
+          medecin: {
+            select: {
+              id: true,
+              utilisateur: {
+                select: {
+                  email: true,
+                  nom: true,
+                  prenom: true
+                }
               }
             }
-          }
-        },
-        hopital: {
-          select: {
-            nom: true
+          },
+          hopital: {
+            select: { nom: true }
           }
         }
+      });
+
+      // 2. Créer la liaison seulement si la demande est approuvée
+      if (statut === 'APPROUVE') {
+        await tx.medecinHopital.create({
+          data: {
+            medecinId: demande.medecinId,
+            hopitalId: demande.hopitalId
+          }
+        });
       }
+
+      return demande;
     });
 
     return {
       success: true,
-      data: demande
+      data: result
     };
 
   } catch (error) {
@@ -411,6 +437,4 @@ export async function mettreAJourStatutDemande({
       error: "Erreur lors de la mise à jour du statut"
     };
   }
-
-  
 }

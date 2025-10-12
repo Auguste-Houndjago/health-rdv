@@ -24,7 +24,7 @@ export default function HopitalCardM({
   slug
 }: HopitalCardMProps) {
   return (
-    <div className="w-72 bg-card rounded-2xl shadow-lg border border-gray-200 dark:border-zinc-600 p-5 flex flex-col gap-4 transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl">
+    <div className="w-72 xl:scale-90  bg-card rounded-2xl shadow-lg border border-gray-200 dark:border-zinc-600 p-5 flex flex-col gap-4 transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl">
       
       {/* En-tête avec gradient */}
       <div className="flex flex-col items-center gap-2 h-24 rounded-xl p-3 bg-gradient-to-r from-blue-100 to-purple-200 dark:from-zinc-200 dark:to-zinc-400">

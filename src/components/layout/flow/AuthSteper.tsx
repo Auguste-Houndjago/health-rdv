@@ -19,7 +19,6 @@ import { Check, LoaderCircleIcon } from 'lucide-react'
 import { useAuthProfileStepper } from "@/hooks/useAuthProfileStepper"
 import { IdentityStepCard, BirthdateStepCard, ProfileStepCard, MedecinProfileStepCard } from "./StepCards"
 import { useProfileMutations } from "@/hooks/useProfileMutations"
-import type { Sexe as PrismaSexe, GroupeSanguin as PrismaGroupeSanguin } from "@prisma/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 

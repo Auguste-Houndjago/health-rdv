@@ -40,6 +40,7 @@ export interface RendezVousPatient {
   motif: string
   statut: 'CONFIRME' | 'EN_ATTENTE' | 'ANNULE' | 'TERMINE'
   hopitalId?: string
+  notes?: string
 }
 
 export default function PatientAppointmentsPage() {

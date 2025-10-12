@@ -213,7 +213,7 @@ export async function getMedecinInfo(): Promise<MedecinInfoPayload> {
 export async function getAllMedecins() {
   try {
     const medecins = await prisma.medecin.findMany({
-      where: {
+      where: {  
         utilisateur: {
           status: 'ACTIF'
         }
@@ -258,10 +258,8 @@ export async function getAllMedecins() {
       prenom: medecin.utilisateur.prenom || '',
       email: medecin.utilisateur.email,
       telephone: medecin.utilisateur.telephone,
-      specialite: medecin.specialite?.nom || 'Non spécifiée',
-      tarif: 50, // Tarif par défaut (pas de champ tarif dans le modèle)
-      note: 4.5, // Note par défaut
-      experience: medecin.anneeExperience || 5, // Utiliser l'expérience réelle ou 5 par défaut
+      specialite: medecin.specialite?.nom ,
+      experience: medecin.anneeExperience || 1, 
       hopitaux: medecin.hopitaux.map(h => ({
         id: h.hopital.id,
         nom: h.hopital.nom,
