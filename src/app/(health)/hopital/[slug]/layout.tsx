@@ -46,7 +46,7 @@ export default async function OrganizationLayout({ children, params }: LayoutPro
 
     // Si l'hôpital n'existe pas, afficher une erreur
     if (!hopital) {
-      redirect('/login');
+     return redirect('/login');
     }
 
     return (

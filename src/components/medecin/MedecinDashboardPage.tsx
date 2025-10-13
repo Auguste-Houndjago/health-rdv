@@ -4,17 +4,19 @@ import MedecinDashboard from './MedecinDashboard'
 import { useEntityFilter } from '@/hooks/entity/useEntityFilter'
 import { getMedecinInfo, MedecinInfoPayload } from '@/app/actions/medecin'
 import { MedecinData, MedecinStats } from './types'
+import { useMedecinAvailability } from '@/hooks/useMedecinAvailability'
 
 export default function MedecinDashboardPage() {
-
-  // Statistiques d'exemple
-
+  // Hook pour gérer la disponibilité
+  const { toggleAvailability, loading: availabilityLoading } = useMedecinAvailability()
 
   // Gestionnaire pour le changement de disponibilité
-  const handleAvailabilityChange = (available: boolean) => {
-    console.log('Disponibilité changée:', available)
-    // Ici vous pourriez appeler une API pour mettre à jour la disponibilité
-    // await updateMedecinAvailability(available)
+  const handleAvailabilityChange = async (available: boolean) => {
+    const success = await toggleAvailability(available)
+    if (success) {
+      // Recharger les données du médecin après le toggle
+      window.location.reload() // Temporaire - sera amélioré avec un refetch
+    }
   }
 
   // Fonction adaptée pour useEntityFilter qui attend un tableau
@@ -62,10 +64,10 @@ export default function MedecinDashboardPage() {
     <div className="container mx-auto p-6">
       <MedecinDashboard
         medecinData={medecinData}
-   
         onAvailabilityChange={handleAvailabilityChange}
         loading={loading}
         error={error?.message || null}
+        availabilityLoading={availabilityLoading}
       />
     </div>
   )

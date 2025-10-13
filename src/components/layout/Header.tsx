@@ -9,9 +9,10 @@ import { Button } from '../ui/button';
 
 interface HeaderProps {
   className?: string;
+  user:boolean
 }
 
-const Header: React.FC<HeaderProps> = ({ className = '' }) => {
+const Header: React.FC<HeaderProps> = ({ className = '', user=false }) => {
   return (
     <header className={`bg-background border-b ${className}`}>
       <nav className=" mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,11 +30,16 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
           {/* Actions */}
           <div className="flex items-center space-x-4">
                   <Nav className="text-card" />
-            <Link href="/auth/signup">
-              <Button variant="default" size="sm">
-                S'inscrire
-              </Button>
-            </Link>
+
+                  {
+                    !user &&
+                    <Link href="/auth/login">
+                      <Button variant="default" size="sm">
+                        S'inscrire
+                      </Button>
+                    </Link>
+                  }
+      
           </div>
         </div>
       </nav>

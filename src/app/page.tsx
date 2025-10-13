@@ -14,13 +14,14 @@ export default async function page() {
   clearCache()
 const user = await getUserInfo({cache:false})
 
-const cached =  getCacheStats()
+
+const isConnect = user.id? true : false
 
 clearCache()
   return (
 
       <div className="flex relative flex-col  min-h-screen bg-design-bg ">
-      <Header/>
+      <Header user={isConnect}  />
         <div className="flex flex-col gap-2">
           <HeroSection/>
           <span className="max-w-[600px]"><SearchDoctor   /></span>

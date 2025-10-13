@@ -114,18 +114,8 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
     },
     {
       label: 'Mes Rendez-vous',
-      href: '/mes-rendez-vous',
+      href: '/rendez-vous',
       icon: ClipboardList
-    },
-    {
-      label: 'Médecins',
-      href: '/medecins',
-      icon: Stethoscope
-    },
-    {
-      label: 'Hôpitaux',
-      href: '/hopitaux',
-      icon: Building
     },
     {
       label: 'Mon Profil',
@@ -140,30 +130,13 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
       icon: Home,
       requiresAuth: false
     },
-    {
-      label: 'Hôpitaux',
-      href: '/hopitaux',
-      icon: Building,
-      requiresAuth: false
-    },
-    {
-      label: 'Médecins',
-      href: '/medecins',
-      icon: Stethoscope,
-      requiresAuth: false
-    },
+    
     {
       label: 'Connexion',
-      href: '/connexion',
+      href: '/auth/login',
       icon: LogIn,
       requiresAuth: false
     },
-    {
-      label: 'Inscription',
-      href: '/inscription',
-      icon: UserPlus,
-      requiresAuth: false
-    }
   ]
 }
 

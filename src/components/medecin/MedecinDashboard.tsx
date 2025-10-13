@@ -1,7 +1,6 @@
 import React from 'react'
 import ProfileCard from './ProfileCard'
 import SpecialtyCard from './SpecialtyCard'
-import StatusBadge from './StatusBadge'
 import AvailabilityToggle from './AvailabilityToggle'
 import { MedecinDashboardProps } from './types'
 import { MedecinAdditionalInfo } from './MedecinAdditionalInfo'
@@ -39,10 +38,10 @@ const ErrorDisplay = ({ error }: { error: string }) => (
 
 export default function MedecinDashboard({ 
   medecinData, 
-  stats,
   onAvailabilityChange,
   loading = false,
-  error = null
+  error = null,
+  availabilityLoading = false
 }: MedecinDashboardProps) {
   const handleAvailabilityToggle = (available: boolean) => {
     if (onAvailabilityChange) {
@@ -76,10 +75,10 @@ export default function MedecinDashboard({
           </p>
         </div>
         <div className="flex items-center gap-3">
-
           <AvailabilityToggle
             isDisponible={medecinData?.isDisponible}
             onToggle={handleAvailabilityToggle}
+            loading={availabilityLoading}
           />
         </div>
       </div>

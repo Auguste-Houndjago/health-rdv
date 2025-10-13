@@ -51,6 +51,7 @@ export interface MedecinDashboardProps {
   onAvailabilityChange?: (available: boolean) => void
   loading?: boolean
   error?: string | null
+  availabilityLoading?: boolean
 }
 
 // Types pour les états de chargement
