@@ -5,7 +5,7 @@ import SpecialiterListe from '@/components/specialities/SpecialiterListe';
 import SpecialiterSlides from '@/components/specialities/SpecialiterSlides';
 import HopitalList from "@/components/hopital/HopitalList";
 
-import { clearCache, getAuthUser, getCacheStats, getUserInfo } from '@/services/users';
+import { clearCache, getUserInfo } from '@/services/users';
 import SearchDoctor from '@/components/SearchDoctor';
 import NoiseOverlay from '@/components/design/NoiseOverlay';
 
