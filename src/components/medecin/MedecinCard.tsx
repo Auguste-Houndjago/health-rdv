@@ -65,7 +65,6 @@ export function MedecinCard({ medecin, className, specialite }: MedecinCardProps
         className
       )}
     >
-     
         {cardContent}
    
     </div>
