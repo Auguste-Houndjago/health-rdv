@@ -2,8 +2,8 @@ import React from "react"
 import { redirect, notFound } from "next/navigation"
 
 // Components
-import PatientCalendar from "@/components/patient/PatientCalendar"
-import { MedecinCard } from "@/components/medecin/MedecinCard"
+import ClientWrapper from "./ClientWrapper"
+import NoiseOverlay from "@/components/design/NoiseOverlay"
 
 // Services
 import { getMedecinInfoById } from "@/services/medecins/medecins"
@@ -23,7 +23,7 @@ export default async function MedecinPage({ params }: PageProps) {
     notFound()
   }
 
-  // Récupération de l'utilisateur (authentification gérée par le layout)
+  // Récupération de l'utilisateur
   const user = await getUserInfo({ cache: false })
   
   if (!user) {
@@ -50,8 +50,18 @@ export default async function MedecinPage({ params }: PageProps) {
   const medecin = medecinResult.value
   const hopital = hopitalResult.status === 'fulfilled' ? hopitalResult.value : null
 
+  // Préparer les données pour le contexte
+  const initialData = {
+    medecin: {
+      ...medecin,
+      hopitalSlug: slug
+    },
+    hopital,
+    patientId: user.id
+  }
+
   return (
-    <main className="max-w-6xl w-full flex flex-col gap-y-14 min-h-screen h-full mx-auto lg:px-12 p-6">
+    <div className="max-w-6xl relative w-full flex flex-col gap-y-14  h-full mx-auto lg:px-12 p-6">
       <section className="mb-8 flex flex-col items-center">
         <h1 className="text-3xl font-semibold mb-4">
           Rendez-vous avec Dr. {medecin.utilisateur.prenom} {medecin.utilisateur.nom}
@@ -61,35 +71,8 @@ export default async function MedecinPage({ params }: PageProps) {
           <span className="font-bold">{medecin.specialite.nom}</span>.
         </p>
       </section>
-    
-      <div className="flex flex-col gap-y-20">
-        <section className="gap-4 flex flex-col md:flex-row justify-center">
-          <div className="flex justify-center">
-            <MedecinCard 
-              medecin={medecin.utilisateur} 
-              specialite={medecin.specialite?.nom} 
-              className="" 
-            />
-          </div>
-          <div className="w-full border-2 rounded-md p-2">
-            <h1 className="text-2xl font-semibold">{medecin.specialite?.nom}</h1>
-            <p className="text-muted-foreground">{medecin.specialite?.description}</p>
-          </div>
-        </section>
 
-        <section className="flex flex-col h-full">
-          <h2 className="text-2xl text-center font-semibold mb-4">
-            Disponibilités & prise de rendez-vous
-          </h2>
-          <PatientCalendar 
-            key={medecinId} // Key pour forcer le remount si medecinId change
-            patientId={user.id} 
-            hopitalId={hopital?.id} 
-            hopitalSlug={slug}
-            medecinId={medecinId} 
-          />
-        </section>
-      </div>
-    </main>
+      <ClientWrapper initialData={initialData} />
+    </div>
   )
 }

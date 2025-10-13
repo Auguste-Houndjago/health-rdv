@@ -7,6 +7,7 @@ import { CalendarCard } from "../calendar/calendar-card"
 import { useCreneauxDisponibles } from "@/hooks/useCreneauxDisponibles"
 import { useRendezVousMutations } from "@/hooks/useRendezVousMutations"
 import { useDocumentUploader } from "@/hooks/utils/useDocumentUploader"
+import { useMedecin } from "@/contexts/MedecinContext"
 import SimpleTimeSlotSelector, { TimeSlot } from "./appointments/SimpleTimeSlotSelector"
 import SimpleAppointmentConfirm from "./appointments/SimpleAppointmentConfirm"
 import { RendezVousActionDialog } from "./appointments/RendezVousActionDialog"
@@ -16,14 +17,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, User, Stethoscope } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "sonner"
-import NoiseOverlay from "../design/NoiseOverlay"
 
-interface PatientCalendarProps {
-  medecinId: string
-  patientId: string
-  hopitalSlug?: string
-  hopitalId?: string
-}
 
 interface ExistingRendezVous {
   id: string
@@ -33,12 +27,14 @@ interface ExistingRendezVous {
   motif: string
 }
 
-export default function PatientCalendar({
-  medecinId,
-  patientId,
-  hopitalSlug = '',
-  hopitalId 
-}: PatientCalendarProps) {
+export default function PatientCalendar() {
+  // Récupération des données depuis le contexte
+  const { medecin: medecinContext, hopital: hopitalContext, patientId } = useMedecin()
+  
+  // Extraction des données
+  const medecinId = medecinContext?.id
+  const hopitalSlug = medecinContext?.hopitalSlug || ''
+  const hopitalId = hopitalContext?.id
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null)
   const [creneauxDisponibles, setCreneauxDisponibles] = useState<TimeSlot[]>([])
@@ -82,6 +78,8 @@ export default function PatientCalendar({
     let isMounted = true
     
     const fetchPlanning = async () => {
+      if (!medecinId) return
+      
       try {
         if (isMounted) setLoading(true)
         const result = await getMedecinPlanning({ medecinId, hopitalSlug })
@@ -98,9 +96,7 @@ export default function PatientCalendar({
       }
     }
 
-    if (medecinId) {
-      fetchPlanning()
-    }
+    fetchPlanning()
 
     return () => {
       isMounted = false
@@ -108,6 +104,8 @@ export default function PatientCalendar({
   }, [medecinId, hopitalSlug])
 
   const medecin = planningData?.medecin
+  
+  // Tous les useMemo doivent être AVANT tout retour conditionnel
   const planningCreneaux = useMemo(() => {
     return planningData?.medecin?.plannings?.flatMap(p => p.creneaux) || []
   }, [planningData])
@@ -146,7 +144,7 @@ export default function PatientCalendar({
     return days
   }, [existingRendezVous])
 
-  // Calculer les créneaux disponibles
+  // Calculer les créneaux disponibles - DOIT être AVANT tout retour conditionnel
   useEffect(() => {
     let isMounted = true
     
@@ -174,6 +172,19 @@ export default function PatientCalendar({
       isMounted = false
     }
   }, [selectedDate, planningCreneaux, rendezVousExistants, getCreneauxForDate])
+
+  // Vérification APRÈS tous les hooks
+  if (!medecinId || !patientId) {
+    return (
+      <div className="w-full h-[630px] flex items-center justify-center">
+        <Alert variant="destructive">
+          <AlertDescription>
+            Données du médecin manquantes
+          </AlertDescription>
+        </Alert>
+      </div>
+    )
+  }
 
   const handleDaySelect = (dayData: any) => {
     // Si le jour a des RDV, ouvrir le modal de détails
@@ -402,7 +413,7 @@ export default function PatientCalendar({
               </CardContent>
             </Card>
         </div>
-                  <NoiseOverlay intensity={18} blendMode="difference"/>
+                
           <div className="w-full md:w-80">
             <Card className="h-full">
               <CardHeader className="pb-3">

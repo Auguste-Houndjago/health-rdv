@@ -2,11 +2,13 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle, ArrowLeft } from "lucide-react"
+import NoiseOverlay from "@/components/design/NoiseOverlay"
 
 export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center p-6">
-      <Alert variant="destructive" className="max-w-md">
+      <Alert variant="default" className="max-w-md">
+        <NoiseOverlay intensity={18} blendMode="difference" />
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Médecin introuvable</AlertTitle>
         <AlertDescription className="space-y-4">

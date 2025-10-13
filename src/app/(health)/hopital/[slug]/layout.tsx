@@ -66,12 +66,13 @@ export default async function OrganizationLayout({ children, params }: LayoutPro
     }
 
     return (
-      <div className="min-h-screen h-full">
+      <div className="min-h-screen  h-full">
         <div>
           <UserHeader 
             avatarUrl={user?.avatar_url} 
             name={user?.nom || user?.email?.split('@')[0] || 'Utilisateur'}
             hopital={hopital}
+            role={user?.role}
           />
         </div>
                    

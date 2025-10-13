@@ -206,7 +206,7 @@ export async function deleteRendezVous(rendezVousId: string) {
 }
 
 
-
+// Anciennes visites du patient (statut TERMINE ou dateDebut < aujourd'hui)
 
 
 
@@ -305,23 +305,35 @@ export async function getPatientRdvById({patientId, slug}: {patientId: string, s
   });
 }
 
-
+export async function getPatientMedecins({patientId, slug}: {patientId: string, slug?: string}) {
+  const hopital = slug ? await getHopitalIdBySlug({slug}) : null;
+const medecins = await prisma.medecin.findMany({
+      where: { rendezVous: { some: { patientId } }, ...(hopital?.id && { hopitalId: hopital.id }) },
+    include: {
+      utilisateur: true,
+    },
+  });
+  return medecins;
+}
 
 export async function getPatientAnciennesVisites({patientId, slug}: {patientId: string, slug?: string}) {
 
   const hopital = slug ? await getHopitalIdBySlug({slug}) : null;
   const now = new Date();
-  return prisma.rendezVous.findMany({
+    const rendezVous = await prisma.rendezVous.findMany({
     where: {
       patientId,
       OR: [
-        { statut: 'TERMINE' },
+        { statut: 'TERMINE' },  
         { date: { lt: now } },
       ],
+      ...(hopital?.id && { hopitalId: hopital.id }),
     },
     include: {
       medecin: { include: { utilisateur: true } },
     },
     orderBy: { date: 'desc' },
   });
+
+  return rendezVous;
 }
