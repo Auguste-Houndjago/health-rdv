@@ -8,14 +8,7 @@ import { MedecinData, MedecinStats } from './types'
 export default function MedecinDashboardPage() {
 
   // Statistiques d'exemple
-  const stats: MedecinStats = {
-    totalPatients: 156,
-    appointmentsToday: 8,
-    pendingAppointments: 3,
-    averageRating: 4.7,
-    totalConsultations: 1240,
-    responseTime: "2h 15min"
-  }
+
 
   // Gestionnaire pour le changement de disponibilité
   const handleAvailabilityChange = (available: boolean) => {
@@ -69,7 +62,7 @@ export default function MedecinDashboardPage() {
     <div className="container mx-auto p-6">
       <MedecinDashboard
         medecinData={medecinData}
-        stats={stats}
+   
         onAvailabilityChange={handleAvailabilityChange}
         loading={loading}
         error={error?.message || null}

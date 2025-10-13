@@ -2,6 +2,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { generateRandomSuffix } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
@@ -143,6 +144,37 @@ export async function getHopitauxWithDetails() {
 
 
 
+export async function generateSlug(nom: string, randomSuffix: string = generateRandomSuffix()) {
+  // Créer le slug de base
+  const baseSlug = nom
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Supprimer les accents
+    .replace(/[^a-z0-9 -]/g, "") // Supprimer les caractères spéciaux
+    .replace(/\s+/g, '-') // Remplacer les espaces par des tirets
+    .replace(/-+/g, '-') // Supprimer les tirets multiples
+    .trim();
+
+  // Format: slug-base--rsuffix-123abc
+  const slug = `${baseSlug}--rsuffix-${randomSuffix}`;
+
+  // Vérifier si le slug existe déjà
+  const existing = await prisma.hopital.findFirst({
+    where: { slug },
+    select: { id: true },
+  });
+
+  // Si le slug existe, régénérer avec un nouveau suffixe
+  if (existing) {
+    return generateSlug(nom, generateRandomSuffix());
+  }
+
+  return slug;
+}
+
+// Générer un suffixe aléatoire de 6 caractères (chiffres + lettres)
+
+
 export async function createHopital(formData: FormData) {
   const rawData = {
     nom: formData.get("nom") as string,
@@ -173,6 +205,8 @@ export async function createHopital(formData: FormData) {
     throw new Error("Un hôpital avec ce nom existe déjà");
   }
 
+  const slug = await generateSlug(nom);
+
   const hopital = await prisma.hopital.create({
     data: {
       nom: nom.trim(),
@@ -183,6 +217,7 @@ export async function createHopital(formData: FormData) {
       url: url || null,
       localisation: localisation?.trim() || null,
       fuseauHoraire: fuseauHoraire || undefined,
+      slug: slug,
     },
     include: {
       _count: {
@@ -196,6 +231,16 @@ export async function createHopital(formData: FormData) {
 
   return hopital;
 }
+
+export async function getHopitalBySlug(slug: string) {
+  const hopital = await prisma.hopital.findUnique({
+    where: { slug },
+  });
+  return hopital;
+}
+
+
+
 
 export async function updateHopital(
   id: string,

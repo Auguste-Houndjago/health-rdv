@@ -8,7 +8,6 @@ import {
   MapPin,
   Phone,
   Mail,
-  Clock,
   Users,
   Stethoscope,
   Calendar
@@ -21,7 +20,7 @@ interface HopitalPageProps {
 }
 
 export default async function HopitalPage({ params }: HopitalPageProps) {
-  const { slug } = params // ✅ pas besoin de `await`
+  const { slug } = params 
 
   try {
     const hopital = await prisma.hopital.findUnique({

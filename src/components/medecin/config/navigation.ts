@@ -55,12 +55,6 @@ export const navigationItems = [
       description: "Recommandations"
     },
     {
-      name: "Statistiques",
-      href: "/medecin/statistiques",
-      icon: BarChart3,
-      description: "Analyses et rapports"
-    },
-    {
       name: "Notifications",
       href: "/medecin/notifications",
       icon: Bell,

@@ -9,28 +9,29 @@
   }
 
 
-  /// =========================
-  /// 📌 Utilisateur global
-  /// =========================
-  model Utilisateur {
-    id                  String               @id @default(uuid())
-    nom                 String
-    prenom              String?
-    email               String               @unique
-    telephone           String?
-    avatarUrl          String?
-    dateNaissance       DateTime?
-    role                Role                  @default(PATIENT)
-    status              StatusUtilisateur    @default(ACTIF)
-    administrateur      Administrateur?
-    medecin             Medecin?
-    patient             Patient?
-    rendezVous          RendezVous[]
-    utilisateurHopitals UtilisateurHopital[]
-    createdAt         DateTime @default(now())
-    updatedAt         DateTime @updatedAt
-    deletedAt         DateTime?
-  }
+/// =========================
+/// 📌 Utilisateur global
+/// =========================
+model Utilisateur {
+  id                  String               @id @default(uuid())
+  nom                 String
+  prenom              String?
+  email               String               @unique
+  telephone           String?
+  avatarUrl          String?
+  dateNaissance       DateTime?
+  role                Role                  @default(PATIENT)
+  status              StatusUtilisateur    @default(ACTIF)
+  administrateur      Administrateur?
+  medecin             Medecin?
+  patient             Patient?
+  rendezVous          RendezVous[]
+  utilisateurHopitals UtilisateurHopital[]
+  notifications       Notification[]       // NOUVELLE RELATION
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
+}
 
   /// =========================
   /// 📌 Administrateur
@@ -221,6 +222,9 @@
     @@index([statut])
   }
 
+
+  
+
   /// =========================
   /// 📌 PlanningDisponibilite
   /// =========================
@@ -266,6 +270,59 @@
     @@index([jour])
     @@index([actif])
   }
+
+
+/// =========================
+/// 📌 Notification
+/// =========================
+model Notification {
+  id              String           @id @default(uuid())
+  titre           String
+  message         String
+  type            TypeNotification
+  statut          StatutNotification @default(NON_LU)
+  utilisateurId   String
+  lien            String?           // URL ou route pour redirection
+  data            Json?             // Données supplémentaires au format JSON
+  dateEnvoi       DateTime          @default(now())
+  dateLecture     DateTime?
+  expiresAt       DateTime?         // Date d'expiration de la notification
+
+  utilisateur     Utilisateur       @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([utilisateurId])
+  @@index([statut])
+  @@index([type])
+  @@index([dateEnvoi])
+  @@index([dateLecture])
+  @@index([expiresAt])
+}
+
+/// =========================
+/// 📌 Enumérations pour les notifications
+/// =========================
+enum TypeNotification {
+  RENDEZ_VOUS     // Création, modification, annulation de RDV
+  MESSAGE         // Nouveau message
+  SYSTEME         // Notification système
+  RAPPEL          // Rappel de RDV
+  URGENCE         // Notification urgente
+  DOCUMENT        // Nouveau document partagé
+  RECOMMANDATION  // Nouvelle recommandation
+  DEMANDE         // Demande d'hôpital
+  AUTRE
+}
+
+enum StatutNotification {
+  NON_LU
+  LU
+  ARCHIVE
+}
+
+
 
   /// =========================
   /// 📌 Enumérations

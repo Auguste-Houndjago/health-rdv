@@ -39,3 +39,30 @@ export const getRandomColor = () => {
   ];
   return colors[Math.floor(Math.random() * colors.length)];
 };
+
+
+
+
+export function generateRandomSuffix(): string {
+  const chars = '0123456789abcdef';
+  let result = '';
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+// Parser le slug pour extraire le nom original (sans le suffixe)
+export function parseSlugToDisplay(slug: string): string {
+  // Retirer le suffixe aléatoire et les tirets
+  return slug
+    .replace(/--rsuffix-[a-z0-9]+$/, '') // Supprimer le suffixe
+    .replace(/-/g, ' ') // Remplacer les tirets par des espaces
+    .replace(/\b\w/g, l => l.toUpperCase()); // Capitaliser chaque mot
+}
+
+// Extraire le suffixe aléatoire du slug
+export function extractRandomSuffix(slug: string): string | null {
+  const match = slug.match(/--rsuffix-([a-z0-9]+)$/);
+  return match ? match[1] : null;
+}
