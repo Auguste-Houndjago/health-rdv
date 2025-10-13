@@ -307,8 +307,11 @@ export async function getPatientRdvById({patientId, slug}: {patientId: string, s
 
 export async function getPatientMedecins({patientId, slug}: {patientId: string, slug?: string}) {
   const hopital = slug ? await getHopitalIdBySlug({slug}) : null;
-const medecins = await prisma.medecin.findMany({
-      where: { rendezVous: { some: { patientId } }, ...(hopital?.id && { hopitalId: hopital.id }) },
+  const medecins = await prisma.medecin.findMany({
+    where: { 
+      rendezVous: { some: { patientId } },
+      ...(hopital?.id && { hopitaux: { some: { id: hopital.id } } })
+    },
     include: {
       utilisateur: true,
     },

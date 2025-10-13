@@ -46,23 +46,7 @@ export default async function OrganizationLayout({ children, params }: LayoutPro
 
     // Si l'hôpital n'existe pas, afficher une erreur
     if (!hopital) {
-      return (
-        <div className="min-h-screen h-full flex items-center justify-center p-6">
-          <Alert variant="destructive" className="max-w-md">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Hôpital introuvable</AlertTitle>
-            <AlertDescription className="space-y-4">
-              <p>L'hôpital avec l'identifiant "{params.slug}" n'existe pas ou n'est plus disponible.</p>
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/">
-                  <Home className="h-4 w-4 mr-2" />
-                  Retour à l'accueil
-                </Link>
-              </Button>
-            </AlertDescription>
-          </Alert>
-        </div>
-      );
+      redirect('/login');
     }
 
     return (
@@ -85,24 +69,7 @@ export default async function OrganizationLayout({ children, params }: LayoutPro
     console.error('Erreur critique dans le layout hopital:', error);
     
     return (
-      <div className="min-h-screen h-full flex items-center justify-center p-6">
-        <Alert variant="destructive" className="max-w-md">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Erreur serveur</AlertTitle>
-          <AlertDescription className="space-y-4">
-            <p>Une erreur inattendue s'est produite lors du chargement de la page.</p>
-            <p className="text-sm text-muted-foreground">
-              Veuillez réessayer ultérieurement ou contacter le support si le problème persiste.
-            </p>
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/">
-                <Home className="h-4 w-4 mr-2" />
-                Retour à l'accueil
-              </Link>
-            </Button>
-          </AlertDescription>
-        </Alert>
-      </div>
+      redirect('/login')
     );
   }
 }

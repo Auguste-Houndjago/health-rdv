@@ -11,11 +11,13 @@ export default async function PatientLayout({
 
   const user = await getUserInfo()
   console.log("PATIEN LAYOUT")
+
+
   
   return (
     <div className="flex h-screen bg-background">
  
-        <PatientSidebar />
+        <PatientSidebar user={user} />
 
       <main className="flex-1 overflow-auto p-4 ld:p-6">
       

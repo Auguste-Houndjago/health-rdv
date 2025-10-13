@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { CalendarPlus, History, CalendarDays } from 'lucide-react'
 import { getUserInfo } from '@/services/users'
 import {  GetPatientRendezVous, getPatientRendezVous } from '@/services/rendezvous/actions'
+import { redirect } from 'next/navigation'
 
 
 export default async function Page({params}: {params: {slug: string}}) {
@@ -14,8 +15,8 @@ export default async function Page({params}: {params: {slug: string}}) {
 
 
   const user = await getUserInfo();
-  if (!user) {
-    return <div className="flex flex-col items-center justify-center min-h-screen">Non connecté</div>
+  if (!user || user?.role !== "PATIENT") {
+    return redirect("/")
   }
   // Pour l'exemple, on affiche les rendez-vous à venir du patient connecté
   const rendezVous = await getPatientRendezVous({patientId: user.id, slug: slug })

@@ -17,17 +17,23 @@ import {
   Menu,
   X
 } from "lucide-react";
-import { logoutAction } from "@/services/auth/authActions";
+
 import { navigationItems } from "./config/navigation";
-import { useUserContext } from "@/providers/UserProvider";
+
 import LogOutForm from "../auth/LogOutForm";
 
+export interface User{
+  email?: string
+  nom?: string
+  prenom?: string
+  avatarUrl?: string
 
+}
 
-export default function PatientSidebar() {
+export default function PatientSidebar({user}: {user: User}) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useUserContext()
+
 
   return (
     <>
