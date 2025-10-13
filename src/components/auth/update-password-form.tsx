@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,9 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/utils/supabase/client";
 
 export function UpdatePasswordForm({
   className,
@@ -23,7 +23,6 @@ export function UpdatePasswordForm({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,27 +31,9 @@ export function UpdatePasswordForm({
     setError(null);
 
     try {
-      // 1️⃣ — récupérer le token du lien magique (si présent)
-      const access_token = searchParams.get("access_token");
-      const refresh_token = searchParams.get("refresh_token");
-
-      // 2️⃣ — recréer ou rafraîchir la session si elle n’existe pas
-      if (access_token && refresh_token) {
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token,
-          refresh_token,
-        });
-        if (sessionError) throw sessionError;
-      }
-
-      // 3️⃣ — mise à jour du mot de passe
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
-
-      // 4️⃣ — rafraîchir la session actuelle (utile si le lien date un peu)
-      await supabase.auth.refreshSession();
-
-      // 5️⃣ — redirection vers la page d’accueil ou tableau de bord
+      // Update this route to redirect to an authenticated route. The user already has an active session.
       router.push("/");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");

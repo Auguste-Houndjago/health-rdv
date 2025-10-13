@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calendar, User, Stethoscope } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "sonner"
+import NoiseOverlay from "../design/NoiseOverlay"
 
 interface PatientCalendarProps {
   medecinId: string
@@ -401,7 +402,7 @@ export default function PatientCalendar({
               </CardContent>
             </Card>
         </div>
-
+                  <NoiseOverlay intensity={18} blendMode="difference"/>
           <div className="w-full md:w-80">
             <Card className="h-full">
               <CardHeader className="pb-3">
