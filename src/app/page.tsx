@@ -15,7 +15,7 @@ export default async function page() {
 const user = await getUserInfo({cache:false})
 
 
-const isConnect = user.id? true : false
+const isConnect = user?.id? true : false
 
 clearCache()
   return (
