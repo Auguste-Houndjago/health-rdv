@@ -72,13 +72,8 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
   MEDECIN: [
     {
       label: 'Dashboard',
-      href: '/medecin/dashboard',
+      href: '/medecin',
       icon: LayoutDashboard
-    },
-    {
-      label: 'Mon Planning',
-      href: '/medecin/planning',
-      icon: Calendar
     },
     {
       label: 'Mes Patients',
@@ -90,16 +85,6 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
       href: '/medecin/rendez-vous',
       icon: Clock
     },
-    {
-      label: 'Disponibilités',
-      href: '/medecin/disponibilites',
-      icon: CheckCircle
-    },
-    {
-      label: 'Profil',
-      href: '/medecin/profil',
-      icon: User
-    }
   ],
   PATIENT: [
     {
@@ -108,20 +93,10 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
       icon: Home
     },
     {
-      label: 'Prendre Rendez-vous',
-      href: '/rendez-vous/nouveau',
-      icon: CalendarPlus
-    },
-    {
       label: 'Mes Rendez-vous',
-      href: '/rendez-vous',
+      href: '/patient/rendez-vous',
       icon: ClipboardList
     },
-    {
-      label: 'Mon Profil',
-      href: '/profil',
-      icon: User
-    }
   ],
   GUEST: [
     {
