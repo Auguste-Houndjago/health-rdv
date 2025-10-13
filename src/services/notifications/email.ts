@@ -146,7 +146,7 @@ export async function sendRendezVousReminderNotification(
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
           .header { background: #F59E0B; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
           .content { background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; }
-          .card { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #F59E0B; }
+          .card { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; }
         </style>
       </head>
       <body>
