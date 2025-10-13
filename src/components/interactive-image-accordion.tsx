@@ -7,27 +7,27 @@ const accordionItems = [
   {
     id: 1,
     title: 'Recherche medicale',
-    imageUrl: '/hero.jpg',
+    imageUrl: '/Medical-Focus.png',
   },
   {
     id: 2,
     title: 'Prise de rendez-vous',
-    imageUrl: '/hero.jpg',
+    imageUrl: '/Focused Medical Writer.png',
   },
   {
     id: 3,
     title: 'Diagnostique ',
-    imageUrl: '/hero.jpg',
+    imageUrl: '/dianostic.png',
   },
   {
     id: 4,
     title: 'Assistance',
-    imageUrl: '/hero.jpg',
+    imageUrl: '/echange.png',
   },
     {
       id: 5,
       title: 'Une vision unique',
-      imageUrl: '/hero.jpg',
+      imageUrl: '/rdv.png',
     },
     // {
     //   id: 6,
