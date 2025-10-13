@@ -54,17 +54,5 @@ export const navigationItems = [
       icon: FileText,
       description: "Recommandations"
     },
-    {
-      name: "Notifications",
-      href: "/medecin/notifications",
-      icon: Bell,
-      description: "Alertes et messages"
-    },
-    {
-      name: "Profile",
-      href: "/medecin/profile",
-      icon: Settings,
-      description: "Informations"
-    }
   ];
 
