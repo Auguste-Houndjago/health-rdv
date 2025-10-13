@@ -119,7 +119,7 @@ export default function PatientAppointmentsPage() {
             <CardContent>
               {/* Indicateur de progression */}
               <div className="flex items-center justify-center mb-8">
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center md:space-x-4">
                   <div className={`flex items-center space-x-2 ${currentStep === 'search' ? 'text-primary' : currentStep === 'time' || currentStep === 'confirm' ? 'text-green-600' : 'text-muted-foreground'}`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'search' ? 'bg-primary text-primary-foreground' : currentStep === 'time' || currentStep === 'confirm' ? 'bg-green-600 text-white' : 'bg-muted'}`}>
                       <Search className="h-4 w-4" />
@@ -127,7 +127,7 @@ export default function PatientAppointmentsPage() {
                     <span className="text-sm font-medium">Recherche</span>
                   </div>
                   
-                  <div className={`w-8 h-1 ${currentStep === 'time' || currentStep === 'confirm' ? 'bg-green-600' : 'bg-muted'}`}></div>
+                  <div className={`w-2 md:w-8 h-1 ${currentStep === 'time' || currentStep === 'confirm' ? 'bg-green-600' : 'bg-muted'}`}></div>
                   
                   <div className={`flex items-center space-x-2 ${currentStep === 'time' ? 'text-primary' : currentStep === 'confirm' ? 'text-green-600' : 'text-muted-foreground'}`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'time' ? 'bg-primary text-primary-foreground' : currentStep === 'confirm' ? 'bg-green-600 text-white' : 'bg-muted'}`}>
@@ -136,7 +136,7 @@ export default function PatientAppointmentsPage() {
                     <span className="text-sm font-medium">Créneau</span>
                   </div>
                   
-                  <div className={`w-8 h-1 ${currentStep === 'confirm' ? 'bg-green-600' : 'bg-muted'}`}></div>
+                  <div className={`w-2 md:w-8 h-1 ${currentStep === 'confirm' ? 'bg-green-600' : 'bg-muted'}`}></div>
                   
                   <div className={`flex items-center space-x-2 ${currentStep === 'confirm' ? 'text-primary' : 'text-muted-foreground'}`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'confirm' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>

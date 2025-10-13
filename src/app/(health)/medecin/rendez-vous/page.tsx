@@ -32,12 +32,15 @@ import { toast } from "sonner";
 import { 
   obtenirRendezVousMedecin, 
   obtenirStatistiquesRendezVous,
+  confirmerRendezVous,
+  annulerRendezVous,
   type RendezVous 
 } from "@/app/actions/rendez-vous";
 
 export default function RendezVousPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showRDVDialog, setShowRDVDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [selectedRDV, setSelectedRDV] = useState<RendezVous | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
@@ -49,6 +52,8 @@ export default function RendezVousPage() {
     rdvEnAttente: 0
   });
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [motifAnnulation, setMotifAnnulation] = useState("");
 
   // Charger les données au montage du composant
   useEffect(() => {
@@ -98,6 +103,56 @@ export default function RendezVousPage() {
 
   const handleRefresh = () => {
     chargerDonnees();
+  };
+
+  const handleConfirmerRDV = async (rdvId: string) => {
+    setActionLoading(true);
+    try {
+      const result = await confirmerRendezVous(rdvId);
+      
+      if (result.success) {
+        toast.success(result.message || "Rendez-vous confirmé avec succès");
+        await chargerDonnees(); // Recharger les données
+        setShowRDVDialog(false);
+      } else {
+        toast.error(result.error || "Erreur lors de la confirmation");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la confirmation:", error);
+      toast.error("Erreur lors de la confirmation du rendez-vous");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleOpenCancelDialog = (rdv: RendezVous) => {
+    setSelectedRDV(rdv);
+    setMotifAnnulation("");
+    setShowCancelDialog(true);
+  };
+
+  const handleAnnulerRDV = async () => {
+    if (!selectedRDV) return;
+
+    setActionLoading(true);
+    try {
+      const result = await annulerRendezVous(selectedRDV.id, motifAnnulation);
+      
+      if (result.success) {
+        toast.success(result.message || "Rendez-vous annulé avec succès");
+        await chargerDonnees(); // Recharger les données
+        setShowCancelDialog(false);
+        setShowRDVDialog(false);
+        setMotifAnnulation("");
+      } else {
+        toast.error(result.error || "Erreur lors de l'annulation");
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'annulation:", error);
+      toast.error("Erreur lors de l'annulation du rendez-vous");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const getStatutBadge = (statut: string) => {
@@ -380,6 +435,69 @@ export default function RendezVousPage() {
         </Card>
       )}
 
+      {/* Dialog de confirmation d'annulation */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Annuler le rendez-vous</DialogTitle>
+            <DialogDescription>
+              Êtes-vous sûr de vouloir annuler ce rendez-vous ?
+            </DialogDescription>
+          </DialogHeader>
+          {selectedRDV && (
+            <div className="space-y-4">
+              <div className="p-4 bg-muted rounded-lg">
+                <div className="font-medium">
+                  {selectedRDV.patient.prenom} {selectedRDV.patient.nom}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {new Date(selectedRDV.date).toLocaleDateString('fr-FR')} à {selectedRDV.heure}
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="motifAnnulation">Motif d'annulation (optionnel)</Label>
+                <Textarea
+                  id="motifAnnulation"
+                  placeholder="Indiquez la raison de l'annulation..."
+                  value={motifAnnulation}
+                  onChange={(e) => setMotifAnnulation(e.target.value)}
+                  className="mt-2"
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowCancelDialog(false)}
+                  disabled={actionLoading}
+                >
+                  Non, conserver
+                </Button>
+                <Button 
+                  variant="destructive"
+                  onClick={handleAnnulerRDV}
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Annulation...
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Oui, annuler
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Dialog de détail RDV */}
       <Dialog open={showRDVDialog} onOpenChange={setShowRDVDialog}>
         <DialogContent className="max-w-2xl">
@@ -428,27 +546,37 @@ export default function RendezVousPage() {
                 </div>
               </div>
 
-              <div>
-                <Label className="text-sm font-medium">Notes</Label>
-                <Textarea 
-                  defaultValue={selectedRDV.notes}
-                  placeholder="Ajouter des notes..."
-                  className="mt-2"
-                />
-              </div>
-
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setShowRDVDialog(false)}>
                   Fermer
                 </Button>
-                <Button variant="outline">
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Annuler RDV
-                </Button>
-                <Button>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Confirmer
-                </Button>
+                {selectedRDV.statut !== 'ANNULE' && (
+                  <Button 
+                    variant="destructive"
+                    onClick={() => handleOpenCancelDialog(selectedRDV)}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <XCircle className="h-4 w-4 mr-2" />
+                    )}
+                    Annuler RDV
+                  </Button>
+                )}
+                {selectedRDV.statut === 'EN_ATTENTE' && (
+                  <Button
+                    onClick={() => handleConfirmerRDV(selectedRDV.id)}
+                    disabled={actionLoading}
+                  >
+                    {actionLoading ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                    )}
+                    Confirmer
+                  </Button>
+                )}
               </div>
             </div>
           )}

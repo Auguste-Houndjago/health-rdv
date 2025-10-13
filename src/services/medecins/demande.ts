@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getUserInfo } from "@/services/users";
 import { StatutDemande } from "@prisma/client";
+import { sendDemandeHopitalCreatedNotification, sendDemandeHopitalApprouveeNotification, sendDemandeHopitalRefuseeNotification } from "@/services/notifications";
 
 export interface DemandeHopitalPayload {
   id: string;
@@ -101,17 +102,61 @@ export async function creerDemandeHopital({
             id: true,
             numLicence: true,
             titre: true,
+            anneeExperience: true,
+            specialite: {
+              select: {
+                nom: true
+              }
+            },
             utilisateur: {
               select: {
                 nom: true,
                 prenom: true,
-                email: true
+                email: true,
+                telephone: true
               }
             }
           }
         }
       }
     });
+
+    // Récupérer l'email de l'admin
+    try {
+      const admin = await prisma.utilisateur.findFirst({
+        where: { role: "ADMIN" },
+        select: { email: true }
+      });
+
+      if (admin?.email) {
+        // Envoyer la notification à l'admin
+        await sendDemandeHopitalCreatedNotification(
+          {
+            id: demande.id,
+            dateDemande: demande.dateDemande,
+            message: demande.message || undefined,
+            medecin: {
+              nom: demande.medecin.utilisateur.nom,
+              prenom: demande.medecin.utilisateur.prenom || '',
+              email: demande.medecin.utilisateur.email,
+              titre: demande.medecin.titre || undefined,
+              numLicence: demande.medecin.numLicence,
+              specialite: demande.medecin.specialite?.nom || undefined,
+              anneeExperience: demande.medecin.anneeExperience || undefined,
+              telephone: demande.medecin.utilisateur.telephone || undefined
+            },
+            hopital: {
+              nom: demande.hopital.nom,
+              adresse: demande.hopital.adresse
+            }
+          },
+          admin.email
+        );
+      }
+    } catch (emailError) {
+      console.error("⚠️ Erreur lors de l'envoi de l'email à l'admin:", emailError);
+      // On ne bloque pas la création de la demande si l'email échoue
+    }
 
     return {
       success: true,
@@ -379,10 +424,11 @@ export async function mettreAJourStatutDemande({
     const user = await getUserInfo();
     
     // Vérification des permissions (à décommenter si nécessaire)
-    // if (user?.role !== "ADMIN") {
-    //   return { success: false, error: "Accès non autorisé" };
-    // }
+    if (user?.role !== "ADMIN") {
+      return { success: false, error: "Accès non autorisé" };
+    }
 
+    const adminId = user?.id;
     // Utilisation d'une transaction pour plus de sécurité
     const result = await prisma.$transaction(async (tx) => {
       // 1. Mettre à jour la demande
@@ -397,6 +443,8 @@ export async function mettreAJourStatutDemande({
           medecin: {
             select: {
               id: true,
+              numLicence: true,
+              titre: true,
               utilisateur: {
                 select: {
                   email: true,
@@ -407,7 +455,10 @@ export async function mettreAJourStatutDemande({
             }
           },
           hopital: {
-            select: { nom: true }
+            select: { 
+              nom: true,
+              adresse: true
+            }
           }
         }
       });
@@ -424,6 +475,48 @@ export async function mettreAJourStatutDemande({
 
       return demande;
     });
+
+    // Envoyer une notification au médecin selon le statut
+    try {
+      if (statut === 'APPROUVE') {
+        await sendDemandeHopitalApprouveeNotification({
+          id: result.id,
+          dateDemande: result.dateDemande,
+          statut: result.statut,
+          reponse: result.reponse || undefined,
+          medecin: {
+            nom: result.medecin.utilisateur.nom,
+            prenom: result.medecin.utilisateur.prenom || '',
+            email: result.medecin.utilisateur.email,
+            numLicence: result.medecin.numLicence
+          },
+          hopital: {
+            nom: result.hopital.nom,
+            adresse: result.hopital.adresse
+          }
+        });
+      } else if (statut === 'REJETE') {
+        await sendDemandeHopitalRefuseeNotification({
+          id: result.id,
+          dateDemande: result.dateDemande,
+          statut: result.statut,
+          reponse: result.reponse || undefined,
+          medecin: {
+            nom: result.medecin.utilisateur.nom,
+            prenom: result.medecin.utilisateur.prenom || '',
+            email: result.medecin.utilisateur.email,
+            numLicence: result.medecin.numLicence
+          },
+          hopital: {
+            nom: result.hopital.nom,
+            adresse: result.hopital.adresse
+          }
+        });
+      }
+    } catch (emailError) {
+      console.error("⚠️ Erreur lors de l'envoi de l'email au médecin:", emailError);
+      // On ne bloque pas la mise à jour si l'email échoue
+    }
 
     return {
       success: true,

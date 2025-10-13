@@ -361,87 +361,122 @@ export async function verifierDisponibilite(
 /**
  * Obtenir les créneaux disponibles pour une date donnée
  */
+
+
+export async function getAllCreneaux(
+) {
+  const creneaux = await prisma.creneauDisponibilite.findMany({
+    include:{planning: true}
+  })
+  return creneaux
+}
+
 export async function getCreneauxDisponibles(
   medecinId: string,
   date: string,
   hopitalId?: string
 ) {
   try {
-    const dateObj = new Date(date);
-    const jourSemaine = dateObj.toLocaleDateString('fr-FR', { weekday: 'long' }).toUpperCase() as JourSemaine;
+    // ✅ Correction : Gestion correcte du timezone
+    const dateObj = new Date(date + 'T00:00:00.000Z'); // Forcer UTC
+    const jourSemaine = getJourSemaineFromDate(dateObj);
 
-    // Récupérer les créneaux de disponibilité
-    const creneaux = await prisma.creneauDisponibilite.findMany({
-      where: {
-        planning: {
-          medecinId: medecinId,
-          actif: true,
-          dateDebut: { lte: dateObj },
-          OR: [
-            { dateFin: null },
-            { dateFin: { gte: dateObj } }
-          ],
-          ...(hopitalId && { hopitalId: hopitalId })
-        },
-        jour: jourSemaine,
-        actif: true
+    console.log("=== DEBUG getCreneauxDisponibles ===");
+    console.log("Date reçue:", date);
+    console.log("DateObj créé:", dateObj);
+    console.log("Jour de la semaine:", jourSemaine);
+    console.log("MedecinId:", medecinId);
+    console.log("HopitalId:", hopitalId);
+
+    // ✅ Vérification que la date est valide (retirer la vérification du futur pour debug)
+    if (isNaN(dateObj.getTime())) {
+      return {
+        success: false,
+        error: "Date invalide"
+      };
+    }
+
+    // ✅ Construction de la query WHERE - Version simplifiée pour debug
+    const whereClause: any = {
+      planning: {
+        medecinId: medecinId,
+        actif: true,
+        dateDebut: { lte: dateObj },
+        OR: [
+          { dateFin: null },
+          { dateFin: { gte: dateObj } }
+        ]
+        // Temporairement ignorer hopitalId pour debug
       },
+      jour: jourSemaine,
+      actif: true
+    };
+
+    console.log("WHERE clause:", JSON.stringify(whereClause, null, 2));
+
+    // ✅ Récupération des créneaux de disponibilité avec vérifications
+    const creneaux = await prisma.creneauDisponibilite.findMany({
+      where: whereClause,
       include: {
-        planning: true
+        planning: {
+          include: {
+            medecin: true
+          }
+        }
+      },
+      orderBy: {
+        heureDebut: 'asc'
       }
     });
+    console.log("CRENEAUX DISPONIBLES trouvés:", creneaux.length);
+    console.log("CRENEAUX DISPONIBLES détails:", JSON.stringify(creneaux, null, 2));
+    // ✅ Si aucun créneau trouvé
+    if (creneaux.length === 0) {
+      return {
+        success: true,
+        data: []
+      };
+    }
 
-    // Récupérer les rendez-vous existants pour cette date
+    // ✅ Récupération des rendez-vous existants avec gestion du timezone
+    const startOfDay = new Date(dateObj);
+    const endOfDay = new Date(dateObj);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+
     const rendezVous = await prisma.rendezVous.findMany({
       where: {
         medecinId: medecinId,
-        date: dateObj,
-        statut: { not: 'ANNULE' }
+        date: {
+          gte: startOfDay,
+          lt: endOfDay
+        },
+        statut: { 
+          notIn: ['ANNULE'] 
+        }
+      },
+      select: {
+        date: true,
+        duree: true
       },
       orderBy: { date: 'asc' }
     });
 
-    // Générer les créneaux disponibles
+    // ✅ Génération des créneaux disponibles
     const creneauxDisponibles = [];
     
     for (const creneau of creneaux) {
-      const [debutHeures, debutMinutes] = creneau.heureDebut.split(':').map(Number);
-      const [finHeures, finMinutes] = creneau.heureFin.split(':').map(Number);
-      
-      const debutTotal = debutHeures * 60 + debutMinutes;
-      const finTotal = finHeures * 60 + finMinutes;
-      const dureeCreneau = creneau.dureeConsultation;
-      const pause = creneau.pauseEntreConsultations;
-
-      let heureActuelle = debutTotal;
-      
-      while (heureActuelle + dureeCreneau <= finTotal) {
-        const heureDebut = new Date(dateObj);
-        heureDebut.setHours(Math.floor(heureActuelle / 60), heureActuelle % 60);
-        
-        const heureFin = new Date(heureDebut);
-        heureFin.setMinutes(heureFin.getMinutes() + dureeCreneau);
-
-        // Vérifier s'il y a un conflit avec un rendez-vous existant
-        const conflit = rendezVous.some(rdv => {
-          const rdvDebut = new Date(rdv.date);
-          const rdvFin = new Date(rdvDebut);
-          rdvFin.setMinutes(rdvFin.getMinutes() + rdv.duree);
-
-          return (heureDebut < rdvFin && heureFin > rdvDebut);
-        });
-
-        if (!conflit) {
-          creneauxDisponibles.push({
-            heureDebut: heureDebut.toTimeString().slice(0, 5),
-            heureFin: heureFin.toTimeString().slice(0, 5),
-            duree: dureeCreneau
-          });
-        }
-
-        heureActuelle += dureeCreneau + pause;
-      }
+      const slots = generateTimeSlotsFromCreneau(
+        creneau, 
+        dateObj, 
+        rendezVous
+      );
+      creneauxDisponibles.push(...slots);
     }
+
+    // ✅ Tri par heure de début
+    creneauxDisponibles.sort((a, b) => 
+      a.heureDebut.localeCompare(b.heureDebut)
+    );
 
     return {
       success: true,
@@ -452,7 +487,82 @@ export async function getCreneauxDisponibles(
     console.error("Erreur lors de la récupération des créneaux:", error);
     return {
       success: false,
-      error: "Erreur lors de la récupération des créneaux"
+      error: "Erreur lors de la récupération des créneaux disponibles"
     };
   }
+}
+
+// ✅ Helper function pour convertir la date en JourSemaine
+function getJourSemaineFromDate(date: Date): JourSemaine {
+  const jours = [
+    'DIMANCHE', 'LUNDI', 'MARDI', 'MERCREDI', 
+    'JEUDI', 'VENDREDI', 'SAMEDI'
+  ];
+  const jour = jours[date.getUTCDay()] as JourSemaine;
+  console.log(`Date: ${date.toISOString()}, getUTCDay(): ${date.getUTCDay()}, Jour: ${jour}`);
+  return jour;
+}
+
+// ✅ Helper function pour générer les créneaux
+function generateTimeSlotsFromCreneau(
+  creneau: any,
+  date: Date,
+  rendezVous: any[]
+): any[] {
+  const slots: any[] = [];
+  
+  const [debutHeures, debutMinutes] = creneau.heureDebut.split(':').map(Number);
+  const [finHeures, finMinutes] = creneau.heureFin.split(':').map(Number);
+  
+  const debutTotal = debutHeures * 60 + debutMinutes;
+  const finTotal = finHeures * 60 + finMinutes;
+  const dureeCreneau = creneau.dureeConsultation;
+  const pause = creneau.pauseEntreConsultations;
+
+  let heureActuelle = debutTotal;
+  
+  while (heureActuelle + dureeCreneau <= finTotal) {
+    const heureDebut = new Date(date);
+    heureDebut.setUTCHours(
+      Math.floor(heureActuelle / 60), 
+      heureActuelle % 60, 
+      0, 
+      0
+    );
+    
+    const heureFin = new Date(heureDebut);
+    heureFin.setUTCMinutes(heureFin.getUTCMinutes() + dureeCreneau);
+
+    // ✅ Vérification des conflits
+    const hasConflict = rendezVous.some(rdv => {
+      const rdvDebut = new Date(rdv.date);
+      const rdvFin = new Date(rdvDebut);
+      rdvFin.setUTCMinutes(rdvFin.getUTCMinutes() + rdv.duree);
+
+      return (
+        (heureDebut >= rdvDebut && heureDebut < rdvFin) ||
+        (heureFin > rdvDebut && heureFin <= rdvFin) ||
+        (heureDebut <= rdvDebut && heureFin >= rdvFin)
+      );
+    });
+
+    if (!hasConflict) {
+      slots.push({
+        heureDebut: formatTime(heureDebut),
+        heureFin: formatTime(heureFin),
+        duree: dureeCreneau,
+        creneauId: creneau.id
+      });
+    }
+
+    // ✅ Gestion correcte de la pause
+    heureActuelle += dureeCreneau + pause;
+  }
+
+  return slots;
+}
+
+// ✅ Helper function pour formater l'heure
+function formatTime(date: Date): string {
+  return date.toTimeString().slice(0, 5);
 }

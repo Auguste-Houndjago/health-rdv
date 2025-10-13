@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Calendar, 
   Clock, 
@@ -16,10 +17,14 @@ import {
   ArrowLeft, 
   CheckCircle, 
   Euro,
-  FileText
+  FileText,
+  File
 } from 'lucide-react'
 import { Medecin, CreneauDisponible } from './PatientAppointmentsPage'
 import { creerRendezVousPatient } from '@/services/patients/rendez-vous'
+import { DocumentUpload } from '@/components/documents/DocumentUpload'
+import { DocumentsList } from '@/components/documents/DocumentsList'
+import { useUser } from '@/hooks/useUser'
 
 interface AppointmentConfirmationProps {
   medecin: Medecin
@@ -42,6 +47,18 @@ export default function AppointmentConfirmation({
 }: AppointmentConfirmationProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [documentsRefresh, setDocumentsRefresh] = useState(0)
+  const [patientId, setPatientId] = useState<string | null>(null)
+  
+  // Récupérer les informations de l'utilisateur (patient)
+  const { user, isLoading: userLoading } = useUser()
+
+  // Récupérer le patientId une fois l'utilisateur chargé
+  useEffect(() => {
+    if (user?.id) {
+      setPatientId(user.id)
+    }
+  }, [user])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -82,6 +99,11 @@ export default function AppointmentConfirmation({
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleDocumentUploadSuccess = () => {
+    // Rafraîchir la liste des documents
+    setDocumentsRefresh(prev => prev + 1)
   }
 
   return (
@@ -150,32 +172,72 @@ export default function AppointmentConfirmation({
         </CardContent>
       </Card>
 
-      {/* Formulaire de détails */}
+      {/* Détails et Documents */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Détails de la Consultation
-          </CardTitle>
+          <CardTitle>Informations Complémentaires</CardTitle>
           <CardDescription>
-            Ajoutez des informations utiles pour votre médecin
+            Ajoutez des détails et vos documents médicaux
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="motif">Motif de la consultation *</Label>
-            <Input
-              id="motif"
-              placeholder="Décrivez brièvement le motif de votre consultation..."
-              value={motif}
-              onChange={(e) => onMotifChange(e.target.value)}
-              className="w-full"
-            />
-            <p className="text-xs text-muted-foreground">
-              Ex: Consultation de routine, douleur, suivi...
-            </p>
-          </div>
+        <CardContent>
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="details" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Détails
+              </TabsTrigger>
+              <TabsTrigger value="documents" className="flex items-center gap-2">
+                <File className="h-4 w-4" />
+                Documents
+              </TabsTrigger>
+            </TabsList>
 
+            <TabsContent value="details" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="motif">Motif de la consultation *</Label>
+                <Input
+                  id="motif"
+                  placeholder="Décrivez brièvement le motif de votre consultation..."
+                  value={motif}
+                  onChange={(e) => onMotifChange(e.target.value)}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ex: Consultation de routine, douleur, suivi...
+                </p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="documents" className="space-y-4 mt-4">
+              {userLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                  <p className="mt-2 text-muted-foreground">Chargement...</p>
+                </div>
+              ) : patientId ? (
+                <div className="space-y-6">
+                  {/* Liste des documents existants */}
+                  <DocumentsList 
+                    patientId={patientId} 
+                    refreshTrigger={documentsRefresh}
+                  />
+
+                  {/* Formulaire d'upload */}
+                  <DocumentUpload 
+                    patientId={patientId}
+                    onUploadSuccess={handleDocumentUploadSuccess}
+                  />
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <File className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Impossible de charger vos documents</p>
+                  <p className="text-sm mt-2">Veuillez vous reconnecter</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
