@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Upload, File, X, Loader2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
 interface DocumentUploadProps {
   patientId: string;

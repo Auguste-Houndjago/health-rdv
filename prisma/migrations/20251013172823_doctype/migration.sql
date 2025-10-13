@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "TypeDocument" AS ENUM ('ORDONNANCE', 'COMPTE_RENDU', 'EXAMEN', 'RADIOLOGIE', 'ANALYSE', 'CERTIFICAT', 'RAPPORT', 'AUTRE');
+
+-- AlterTable
+ALTER TABLE "Document" ADD COLUMN     "type" "TypeDocument" NOT NULL DEFAULT 'AUTRE';

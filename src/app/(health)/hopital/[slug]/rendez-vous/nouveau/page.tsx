@@ -5,6 +5,7 @@ import { SpecialiteAccordionCard } from "@/components/specialities/ux/Specialite
 export default async function Page({ params }: { params: { slug: string } }) {
   const hopital = await getHopitalInfoBySlug({ slug: params.slug });
 
+  
   const specialites = hopital?.specialites || [];
 
   return (
@@ -15,7 +16,9 @@ export default async function Page({ params }: { params: { slug: string } }) {
         </h1>
 
         <div className="space-y-8 bg-transparent">
-          {specialites.map((specialite, index) => (
+         
+         {specialites.length > 0 ? (
+         specialites?.map((specialite, index) => (
             <div key={index} className="lg:flex gap-6">
               <div className="lg:w-2/3">
                 <SpecialiteAccordionCard
@@ -36,7 +39,12 @@ export default async function Page({ params }: { params: { slug: string } }) {
                 </p>
               </div>
             </div>
-          ))}
+          ))
+          ) : (
+            <div className="text-center h-52 flex items-center justify-center text-4xl text-muted-foreground">
+              Aucune spécialité trouvée
+            </div>
+          )}
         </div>
       </div>
     </div>

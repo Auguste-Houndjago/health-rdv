@@ -384,6 +384,97 @@ export async function getRendezVousPatient() {
 }
 
 /**
+ * Modifier un rendez-vous
+ */
+export async function modifierRendezVousPatient(params: {
+  rendezVousId: string
+  date: string
+  heure: string
+  duree: number
+  motif: string
+}) {
+  try {
+    const user = await getUserInfo()
+    
+    if (user?.role !== "PATIENT") {
+      return {
+        success: false,
+        error: "Profil patient non trouvé"
+      }
+    }
+
+    const patient = await prisma.patient.findFirst({
+      where: { userId: user.id }
+    })
+
+    if (!patient) {
+      return {
+        success: false,
+        error: "Profil patient non trouvé"
+      }
+    }
+
+    // Vérifier que le rendez-vous appartient au patient
+    const rendezVous = await prisma.rendezVous.findFirst({
+      where: {
+        id: params.rendezVousId,
+        patientId: patient.id
+      }
+    })
+
+    if (!rendezVous) {
+      return {
+        success: false,
+        error: "Rendez-vous non trouvé ou accès non autorisé"
+      }
+    }
+
+    // Vérifier que le rendez-vous peut être modifié
+    if (rendezVous.statut === 'ANNULE') {
+      return {
+        success: false,
+        error: "Impossible de modifier un rendez-vous annulé"
+      }
+    }
+
+    if (rendezVous.statut === 'TERMINE') {
+      return {
+        success: false,
+        error: "Impossible de modifier un rendez-vous terminé"
+      }
+    }
+
+    // Créer la nouvelle date avec l'heure
+    const [heures, minutes] = params.heure.split(':').map(Number)
+    const dateRendezVous = new Date(params.date)
+    dateRendezVous.setHours(heures, minutes, 0, 0)
+
+    // Modifier le rendez-vous
+    const updatedRendezVous = await prisma.rendezVous.update({
+      where: { id: params.rendezVousId },
+      data: {
+        date: dateRendezVous,
+        duree: params.duree,
+        motif: params.motif
+      }
+    })
+
+    return {
+      success: true,
+      data: updatedRendezVous,
+      message: "Rendez-vous modifié avec succès"
+    }
+
+  } catch (error) {
+    console.error("Erreur lors de la modification du rendez-vous:", error)
+    return {
+      success: false,
+      error: "Erreur lors de la modification du rendez-vous"
+    }
+  }
+}
+
+/**
  * Annuler un rendez-vous
  */
 export async function annulerRendezVousPatient(rendezVousId: string) {

@@ -319,7 +319,7 @@ export async function createHopital(formData: FormData) {
   return hopital;
 }
 
-export async function getHopitalBySlug(slug: string) {
+export async function getHopitalBySlug({slug}: {slug: string}) {
   const hopital = await prisma.hopital.findUnique({
     where: { slug },
     select: {

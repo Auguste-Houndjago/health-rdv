@@ -83,16 +83,17 @@ model Utilisateur {
   /// =========================
   /// 📌 Document
   /// =========================
-  model Document {
-    id           String   @id @default(uuid())
-    titre        String
-    description  String?
-    dateCreation DateTime @default(now())
-    patientId    String?
-    url          String
-    patient      Patient? @relation(fields: [patientId], references: [id], onDelete: Cascade)
-    recommandations Recommandation[]
-  }
+model Document {
+  id           String        @id @default(uuid())
+  titre        String
+  description  String?
+  dateCreation DateTime      @default(now())
+  patientId    String?
+  url          String
+  type         TypeDocument  @default(AUTRE)  // Nouveau champ
+  patient      Patient?      @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  recommandations Recommandation[]
+}
 
   /// =========================
   /// 📌 RendezVous
@@ -322,6 +323,17 @@ enum StatutNotification {
   ARCHIVE
 }
 
+
+enum TypeDocument {
+  ORDONNANCE
+  COMPTE_RENDU
+  EXAMEN
+  RADIOLOGIE
+  ANALYSE
+  CERTIFICAT
+  RAPPORT
+  AUTRE
+}
 
 
   /// =========================

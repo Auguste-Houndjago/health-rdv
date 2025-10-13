@@ -16,7 +16,6 @@ import {
   User, 
   ArrowLeft, 
   CheckCircle, 
-  Euro,
   FileText,
   File
 } from 'lucide-react'
