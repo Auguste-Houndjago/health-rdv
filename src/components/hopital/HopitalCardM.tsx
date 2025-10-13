@@ -37,7 +37,7 @@ export default function HopitalCardM({
         <MapPin size={18} className="text-red-500" />
         <p className="text-sm">{adresse}</p>
       </div>
-      <div>
+      <div className="flex justify-center">
         <HopitalIntegration 
           hopitalId={id || ""} 
           hopitalNom={nom} 
@@ -45,7 +45,7 @@ export default function HopitalCardM({
       </div>
       {/* Description */}
       {description && (
-        <p className="text-sm text-gray-700 dark:text-gray-200 line-clamp-3">
+        <p className="text-sm text-gray-700 text-center  font-semibold dark:text-gray-200 line-clamp-3">
           {description}
         </p>
       )}

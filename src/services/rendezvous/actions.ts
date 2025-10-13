@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { StatutRendezVous } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { sendRendezVousCancelledNotification, sendRendezVousConfirmedNotification, sendRendezVousCreatedNotification } from "../notifications/email";
+import { getHopitalIdBySlug } from "../hopitaux";
 
 
 // Créer un nouveau rendez-vous
@@ -192,8 +193,6 @@ export async function deleteRendezVous(rendezVousId: string) {
       where: { id: rendezVousId },
     });
 
-
-
     return {
       success: true,
     };
@@ -204,4 +203,125 @@ export async function deleteRendezVous(rendezVousId: string) {
       error: "Erreur lors de la suppression du rendez-vous",
     };
   }
+}
+
+
+
+
+
+
+
+/* 
+
+
+* Récupére les rendez-vous d'un patient par hopital id si fourni
+
+* make by me : 13/10/2025
+*/
+export type GetRendezvousById = Awaited<ReturnType<typeof getRendezvousById>>;
+export async function getRendezvousById({ 
+  visitId, 
+  slug 
+}: { 
+  visitId: string; 
+  slug?: string;
+}) {
+  try {
+    const hopital = slug ? await getHopitalIdBySlug({ slug }) : null;
+
+    const rendezVous = await prisma.rendezVous.findUnique({
+      where: {
+        id: visitId,
+        ...(hopital?.id && { hopitalId: hopital.id })
+      },
+      include: {
+        patient: { include: { utilisateur: true } },
+        medecin: { include: { utilisateur: true } },
+      },
+    });
+
+    return rendezVous;
+  } catch (error) {
+    console.error('Erreur lors de la recherche du rendez-vous:', error);
+    throw new Error('Impossible de trouver le rendez-vous');
+  }
+}
+
+export type GetPatientRendezVous = Awaited<ReturnType<typeof getPatientRendezVous>>;
+export async function getPatientRendezVous({patientId, slug}: {patientId: string, slug?: string}) {
+  const now = new Date();
+  
+  // Récupérer l'hôpital si slug est fourni
+  const hopital = slug ? await getHopitalIdBySlug({slug}) : null;
+
+  const existingPatient = await prisma.patient.findUnique({
+    where: { id: patientId },
+  });
+
+  if (!existingPatient) {
+    throw new Error('Patient non trouvé');
+  }
+
+  return prisma.rendezVous.findMany({
+    where: {
+      patientId,
+      date: { gte: now },
+      statut: { in: ['EN_ATTENTE', 'CONFIRME'] },
+      ...(hopital?.id && { hopitalId: hopital.id }),
+    },
+    include: {
+      medecin: { include: { utilisateur: true } },
+    },
+    orderBy: { date: 'asc' },
+  });
+}
+
+
+export async function getPatientRdvById({patientId, slug}: {patientId: string, slug?: string}) {
+  const now = new Date();
+  
+  // Récupérer l'hôpital si slug est fourni
+  const hopital = slug ? await getHopitalIdBySlug({slug}) : null;
+
+  const existingPatient = await prisma.patient.findUnique({
+    where: { id: patientId },
+  });
+
+  if (!existingPatient) {
+    throw new Error('Patient non trouvé');
+  }
+
+  return prisma.rendezVous.findMany({
+    where: {
+      patientId,
+      date: { gte: now },
+      // statut: { in: ['EN_ATTENTE', 'CONFIRME'] },
+      ...(hopital?.id && { hopitalId: hopital.id }),
+    },
+    include: {
+      medecin: { include: { utilisateur: true } },
+    },
+    orderBy: { date: 'asc' },
+  });
+}
+
+
+
+export async function getPatientAnciennesVisites({patientId, slug}: {patientId: string, slug?: string}) {
+
+  const hopital = slug ? await getHopitalIdBySlug({slug}) : null;
+  const now = new Date();
+  return prisma.rendezVous.findMany({
+    where: {
+      patientId,
+      OR: [
+        { statut: 'TERMINE' },
+        { date: { lt: now } },
+      ],
+    },
+    include: {
+      medecin: { include: { utilisateur: true } },
+    },
+    orderBy: { date: 'desc' },
+  });
 }

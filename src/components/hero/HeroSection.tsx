@@ -1,5 +1,5 @@
 import React from 'react';
-import Image from 'next/image';
+import { LangingImages } from '../interactive-image-accordion';
 
 interface HeroSectionProps {
     className?: string;
@@ -24,8 +24,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
                     </div>
 
                     {/* gauche  */}
-                    <div className='flex-1 flex w-full border rounded-md h-full'>
-                        <Image src="/hero.jpg" alt="Description de l'image" width={100} height={200} className="object-cover rounded-lg w-full h-auto" />
+                    <div className=' flex w-1/2  overflow-hidden  rounded-md h-full'>
+                        {/* <Image src="/hero.jpg" alt="Description de l'image" width={100} height={200} className="object-cover rounded-lg w-full h-auto" />
+                         */}
+
+                         <LangingImages />
                     </div>
                 </div>
 

@@ -54,11 +54,11 @@ export default function HopitalIntegration({
   };
 
   const getTriggerLabel = () => {
-    if (isLoadingStatut) return "Chargement...";
+    if (isLoadingStatut) return "...";
     if (hasExistingDemande) {
       return `Statut: ${getStatutText(demande?.statut || "")}`;
     }
-    return "Faire une demande";
+    return "demande";
   };
 
   const getTriggerVariant = () => {
@@ -173,6 +173,7 @@ export default function HopitalIntegration({
               Vous pourrez également <strong>consulter le statut de votre demande </strong> 
               directement sur cette page ou dans votre espace personnel.
             </p>
+            
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>

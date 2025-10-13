@@ -395,14 +395,58 @@ export async function getDemandesHopital(hopitalId?: string) {
 
 export async function addHopitalToMedecin(medecinId: string, hopitalId: string) {
   try {
-    const liaison = await prisma.medecinHopital.create({
-      data: {
-        medecinId: medecinId,
-        hopitalId: hopitalId
+    const result = await prisma.$transaction(async (prisma) => {
+      // 1. Vérifier si la liaison existe
+      const liaisonExistante = await prisma.medecinHopital.findUnique({
+        where: {
+          medecinId_hopitalId: {
+            medecinId: medecinId,
+            hopitalId: hopitalId
+          }
+        }
+      });
+
+      if (liaisonExistante) {
+        return { liaison: liaisonExistante, specialiteLiee: false };
       }
+
+      // 2. Récupérer le médecin avec sa spécialité
+      const medecin = await prisma.medecin.findUnique({
+        where: { id: medecinId },
+        include: { specialite: true }
+      });
+
+      if (!medecin) {
+        throw new Error("Médecin non trouvé");
+      }
+
+      // 3. Créer la liaison médecin-hôpital
+      const liaison = await prisma.medecinHopital.create({
+        data: {
+          medecinId: medecinId,
+          hopitalId: hopitalId
+        }
+      });
+
+      // 4. Lier la spécialité à l'hôpital si nécessaire
+      let specialiteLiee = false;
+      if (medecin.specialiteId) {
+        await prisma.hopital.update({
+          where: { id: hopitalId },
+          data: {
+            specialites: {
+              connect: { id: medecin.specialiteId }
+            }
+          }
+        });
+        specialiteLiee = true;
+      }
+
+      return { liaison, specialiteLiee, specialite: medecin.specialite };
     });
 
-    return liaison;
+    return result;
+
   } catch (error) {
     console.error("Erreur:", error);
     throw new Error("Impossible d'ajouter l'hôpital au médecin");

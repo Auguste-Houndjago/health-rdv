@@ -36,7 +36,94 @@ export async function getHopitaux() {
   return hopitaux;
 }
 
+export type HopitalInfoBySlugWithMedecins = Awaited<ReturnType<typeof getHopitalInfoBySlugWithMedecins>>;
+export async function getHopitalInfoBySlugWithMedecins({slug}: {slug: string}) {
+  try {
+    const hopital = await prisma.hopital.findUnique({
+      where: { slug },
+      include: {
+        specialites: true,
+        medecin: {
+          include: {
+            medecin: {
+              include: {
+                utilisateur: true,
+                specialite: true
+              }
+            }
+          }
+        },
+        _count: {
+          select: {
+            medecin: true,
+            specialites: true,
+            utilisateurHopitals: true,
+            rendevous: true
+          }
+        }
+      }
+    })
+    return hopital;
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'hôpital:", error);
+      throw new Error("Impossible de récupérer l'hôpital");
+    }
 
+}
+
+export type HopitalInfoBySlug = Awaited<ReturnType<typeof getHopitalInfoBySlug>>;
+
+export async function getHopitalInfoBySlug({slug}: {slug: string}) {
+  try {
+    const hopital = await prisma.hopital.findUnique({
+      where: { slug },
+      include: {
+        specialites: {
+          include: {
+            medecins: {
+              where: {
+                hopitaux: {
+                  some: {
+                    hopital: { slug }
+                  }
+                }
+              },
+              include: {
+                utilisateur: true,
+                specialite: true
+              }
+            }
+          }
+        },
+      }
+    })
+
+    if (!hopital) return null;
+
+    // Transformer les données pour correspondre au format attendu par le composant
+    const specialitesTransformees = hopital.specialites.map(specialite => ({
+      nom: specialite.nom,
+      description: specialite.description || undefined,
+      medecins: specialite.medecins.map(medecin => ({
+        id: medecin.id,
+        nom: medecin.utilisateur.nom,
+        prenom: medecin.utilisateur.prenom || '',
+        avatarUrl: medecin.utilisateur.avatarUrl || undefined,
+        specialite: medecin.specialite.nom,
+        telephone: medecin.utilisateur.telephone || '',
+        isDisponible: medecin.isDisponible
+      }))
+    }));
+
+    return {
+      ...hopital,
+      specialites: specialitesTransformees
+    };
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'hôpital:", error);
+    throw new Error("Impossible de récupérer l'hôpital");
+  }
+}
 
 export type HopitalWithDetails = Awaited<ReturnType<typeof getHopitauxWithDetails>>[number];
 
@@ -235,11 +322,28 @@ export async function createHopital(formData: FormData) {
 export async function getHopitalBySlug(slug: string) {
   const hopital = await prisma.hopital.findUnique({
     where: { slug },
+    select: {
+      id: true,
+      nom: true,
+      slug: true,
+    }
   });
   return hopital;
 }
 
 
+export async function getHopitalIdBySlug({slug}: {slug: string | undefined | null}) {
+  if (!slug) {
+    return null;
+  }
+  const hopital = await prisma.hopital.findUnique({
+    where: { slug },
+    select: {
+      id: true,
+    }
+  });
+  return hopital;
+}
 
 
 export async function updateHopital(

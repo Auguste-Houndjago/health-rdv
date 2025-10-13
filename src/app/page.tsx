@@ -19,15 +19,17 @@ const cached =  getCacheStats()
 clearCache()
   return (
 
-      <div className="flex relative flex-col gap-20 min-h-screen bg-design-bg ">
+      <div className="flex relative flex-col  min-h-screen bg-design-bg ">
       <Header/>
         <div className="flex flex-col gap-2">
           <HeroSection/>
           <span className="max-w-[600px]"><SearchDoctor   /></span>
         </div>
-        <SpecialiterListe/>
-        <SpecialiterSlides/>
-        <HopitalList/>
+        <div className="gap-20 pt-32 flex flex-col ">
+          <SpecialiterListe/>
+          <SpecialiterSlides/>
+          <HopitalList/>
+        </div>
         <NoiseOverlay intensity={18} blendMode="difference" />
     </div>
   )

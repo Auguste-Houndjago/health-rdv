@@ -9,55 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, MapPin, Star, Clock, Euro, User } from 'lucide-react'
 import { Medecin } from './PatientAppointmentsPage'
 import { useEntityFilter } from '@/hooks/entity/useEntityFilter'
-import { getHopitauxWithDetails } from '@/services/hopitaux/actions'
+import { getHopitauxWithDetails, HopitalWithDetails } from '@/services/hopitaux/actions'
 
-// Type pour les hôpitaux avec détails complets
-interface HopitalWithDetails {
-  id: string
-  nom: string
-  adresse: string
-  description?: string
-  image?: string
-  url?: string
-  contact: string
-  localisation?: string
-  slug?: string
-  fuseauHoraire: string
-  medecins: Array<{
-    id: string
-    numLicence: string
-    anneeExperience?: number
-    titre: string
-    isDisponible: boolean
-    utilisateur: {
-      id: string
-      nom: string
-      prenom: string
-      email: string
-      telephone?: string
-      avatarUrl?: string
-    }
-    specialite: {
-      id: string
-      nom: string
-    }
-  }>
-  specialites: Array<{
-    id: string
-    nom: string
-    image?: string
-    description?: string
-  }>
-  utilisateurs: Array<{
-    id: string
-    nom: string
-    prenom: string
-    email: string
-    role: string
-    dateDebut: Date
-    dateFin?: Date
-  }>
-}
 
 // Type pour les médecins avec hôpitaux multiples (pour compatibilité)
 interface MedecinWithHopitaux {
@@ -84,6 +37,7 @@ export default function DoctorSearch({ onMedecinSelect }: DoctorSearchProps) {
   const [specialite, setSpecialite] = useState('all')
   const [hopital, setHopital] = useState('all')
 
+  
   // Utilisation du hook useEntityFilter pour récupérer les hôpitaux avec détails
   const { data: hopitauxData, loading, error } = useEntityFilter<HopitalWithDetails>({
     entityName: "getHopitauxWithDetails",

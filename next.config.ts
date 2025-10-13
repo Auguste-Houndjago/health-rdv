@@ -12,7 +12,9 @@ module.exports = {
   images: {
     domains: [
       'jmpyywklilgqruacvtlj.supabase.co',
+      'images.unsplash.com'
     ],
+    
   },
 
   async headers() {

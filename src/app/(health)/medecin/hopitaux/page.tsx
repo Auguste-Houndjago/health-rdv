@@ -5,7 +5,7 @@ export default function Page() {
   return (
     <div className="min-h-screen w-full bg-background">
       {/* En-tête élégante */}
-      <section className="border-b bg-muted/30">
+      <section className="border rounded-md bg-muted/30">
         <div className="container mx-auto px-6 py-10 text-center">
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             Liste des hôpitaux partenaires
@@ -19,9 +19,9 @@ export default function Page() {
 
       {/* Contenu principal */}
       <main className="container mx-auto px-4 py-8">
-        <div className="rounded-xl border bg-card shadow-sm p-4 sm:p-6">
+ 
           <HopitalCards className="w-full" />
-        </div>
+
       </main>
     </div>
   )
