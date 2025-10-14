@@ -43,7 +43,7 @@ const Header: React.FC<HeaderProps> = ({ className = '', user=null }) => {
 
                   {
                     user &&
-                      <UserDropdown name={user?.nom || user?.email?.split('@')[0] || null } avatarUrl={user?.avatar_url} email={user?.email}/>
+                      <UserDropdown name={user?.nom || user?.email?.split('@')[0] || null } avatarUrl={user?.avatar_url} email={user?.email} role={user?.role} />
                   }
       
           </div>

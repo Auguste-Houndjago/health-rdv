@@ -54,7 +54,7 @@ export default function UserHeader({name,avatarUrl,hopital,role,email}: User) {
             <span className="text-lg font-semibold">
   {name|| "--"}
 </span>
-            <UserDropdown name={name || undefined} avatarUrl={avatarUrl|| null} email={email|| undefined}/>
+            <UserDropdown name={name || undefined} avatarUrl={avatarUrl|| null} email={email|| undefined} role={role} />
 
           </div>
         </div>
