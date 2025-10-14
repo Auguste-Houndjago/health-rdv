@@ -5,14 +5,15 @@ import Link from 'next/link';
 import { Heart } from 'lucide-react';
 import Nav from './navigation/Nav';
 import { Button } from '../ui/button';
-
+import UserDropdown from '../UserDropdown'; 
+import { UserInfo } from '@/types/user';
 
 interface HeaderProps {
   className?: string;
-  user:boolean
+  user:UserInfo
 }
 
-const Header: React.FC<HeaderProps> = ({ className = '', user=false }) => {
+const Header: React.FC<HeaderProps> = ({ className = '', user=null }) => {
   return (
     <header className={`bg-background border-b ${className}`}>
       <nav className=" mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,6 +39,11 @@ const Header: React.FC<HeaderProps> = ({ className = '', user=false }) => {
                         S'inscrire
                       </Button>
                     </Link>
+                  }
+
+                  {
+                    user &&
+                      <UserDropdown name={user?.nom || user?.email?.split('@')[0] || null } avatarUrl={user?.avatar_url} email={user?.email}/>
                   }
       
           </div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ModeToggle } from "../layout/ModeToggle";
 import AvatarUser from "./AvatarUser";
 import { getNavigationByRole, UserRole } from "./navigation";
+import UserDropdown from "../UserDropdown";
 
 export interface HopitalHeaderProps {
   id?: string;
@@ -13,8 +14,9 @@ export interface User {
   avatarUrl?: string | null;
   role?: string | null;
   hopital?: HopitalHeaderProps;
+  email?: string | null;
 }
-export default function UserHeader({name,avatarUrl,hopital,role}: User) {
+export default function UserHeader({name,avatarUrl,hopital,role,email}: User) {
 
   const links = getNavigationByRole(role as UserRole || 'GUEST');  
   return (
@@ -52,8 +54,8 @@ export default function UserHeader({name,avatarUrl,hopital,role}: User) {
             <span className="text-lg font-semibold">
   {name|| "--"}
 </span>
+            <UserDropdown name={name || undefined} avatarUrl={avatarUrl|| null} email={email|| undefined}/>
 
-            <AvatarUser name={name || undefined} avatarUrl={avatarUrl|| null}/>
           </div>
         </div>
       </nav>

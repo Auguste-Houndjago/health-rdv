@@ -26,7 +26,9 @@ export default async function MedecinLayout({
       <main className="flex-1 overflow-auto p-6">
         <UserHeader 
           avatarUrl={user?.avatar_url} 
-          name={user?.nom}
+          name={user?.nom || user?.email?.split('@')[0] || null }
+          email={user?.email}
+          role={user?.role}
         />
         {children}
       </main>

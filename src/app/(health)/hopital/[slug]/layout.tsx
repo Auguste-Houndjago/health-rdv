@@ -2,10 +2,7 @@ import UserHeader from '@/components/user/UserHeader';
 import { getHopitalBySlug } from '@/services/hopitaux';
 import { getUserInfo } from '@/services/users';
 import { redirect } from 'next/navigation';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Home } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -54,9 +51,10 @@ export default async function OrganizationLayout({ children, params }: LayoutPro
         <div>
           <UserHeader 
             avatarUrl={user?.avatar_url} 
-            name={user?.nom || user?.email?.split('@')[0] || 'Utilisateur'}
+            name={user?.nom || user?.email?.split('@')[0] || null }
             hopital={hopital}
             role={user?.role}
+            email={user?.email}
           />
         </div>
                    

@@ -8,6 +8,8 @@ import {
   sendRendezVousCancelledNotification 
 } from "@/services/notifications/email"
 import { RendezVousNotificationData } from "@/services/notifications/types"
+import { creerNotification } from "@/services/notifications/notifications-actions"
+import { TypeNotification } from "@prisma/client"
 
 export interface MedecinDisponible {
   id: string
@@ -322,13 +324,51 @@ export async function creerRendezVousPatient(params: CreerRendezVousParams) {
         } : undefined
       }
 
-      // Envoyer les notifications (ne pas bloquer si échec)
+      // Envoyer les notifications email (ne pas bloquer si échec)
       try {
         await sendRendezVousCreatedNotification(notificationData)
-        console.log('✅ Notifications envoyées pour le rendez-vous:', rendezVous.id)
+        console.log('✅ Notifications email envoyées pour le rendez-vous:', rendezVous.id)
       } catch (emailError) {
-        console.error('⚠️ Erreur lors de l\'envoi des notifications:', emailError)
+        console.error('⚠️ Erreur lors de l\'envoi des notifications email:', emailError)
         // Ne pas faire échouer la création du RDV si l'email échoue
+      }
+
+      // Créer les notifications en base de données
+      try {
+        // Notification pour le patient
+        await creerNotification({
+          titre: "Rendez-vous créé",
+          message: `Votre demande de rendez-vous avec Dr. ${medecinInfo.utilisateur.prenom} ${medecinInfo.utilisateur.nom} a été envoyée. Vous recevrez une confirmation par email.`,
+          type: TypeNotification.RENDEZ_VOUS,
+          utilisateurId: user.id,
+          lien: `/patient/appointments`,
+          data: {
+            rendezVousId: rendezVous.id,
+            medecinId: medecinInfo.id,
+            date: rendezVous.date,
+            statut: rendezVous.statut
+          }
+        })
+
+        // Notification pour le médecin
+        await creerNotification({
+          titre: "Nouvelle demande de rendez-vous",
+          message: `${patientInfo.utilisateur.prenom} ${patientInfo.utilisateur.nom} a demandé un rendez-vous le ${new Date(rendezVous.date).toLocaleDateString('fr-FR')} à ${rendezVous.date.toTimeString().slice(0, 5)}.`,
+          type: TypeNotification.RENDEZ_VOUS,
+          utilisateurId: medecinInfo.userId,
+          lien: `/medecin/appointments`,
+          data: {
+            rendezVousId: rendezVous.id,
+            patientId: patient.id,
+            date: rendezVous.date,
+            statut: rendezVous.statut
+          }
+        })
+
+        console.log('✅ Notifications en base de données créées pour le rendez-vous:', rendezVous.id)
+      } catch (notifError) {
+        console.error('⚠️ Erreur lors de la création des notifications en BDD:', notifError)
+        // Ne pas faire échouer la création du RDV si la notification échoue
       }
     }
 
@@ -565,14 +605,50 @@ export async function modifierRendezVousPatient(params: {
         } : undefined
       }
 
-      // Envoyer les notifications (ne pas bloquer si échec)
+      // Envoyer les notifications email (ne pas bloquer si échec)
       try {
-        // Utilise le template de création avec le statut modifié
         await sendRendezVousCreatedNotification(notificationData)
-        console.log('✅ Notifications de modification envoyées pour le rendez-vous:', params.rendezVousId)
+        console.log('✅ Notifications email de modification envoyées pour le rendez-vous:', params.rendezVousId)
       } catch (emailError) {
-        console.error('⚠️ Erreur lors de l\'envoi des notifications de modification:', emailError)
+        console.error('⚠️ Erreur lors de l\'envoi des notifications email de modification:', emailError)
         // Ne pas faire échouer la modification si l'email échoue
+      }
+
+      // Créer les notifications en base de données
+      try {
+        // Notification pour le patient
+        await creerNotification({
+          titre: "Rendez-vous modifié",
+          message: `Votre rendez-vous avec Dr. ${rendezVousComplet.medecin.utilisateur.prenom} ${rendezVousComplet.medecin.utilisateur.nom} a été modifié pour le ${new Date(rendezVousComplet.date).toLocaleDateString('fr-FR')} à ${rendezVousComplet.date.toTimeString().slice(0, 5)}.`,
+          type: TypeNotification.RENDEZ_VOUS,
+          utilisateurId: user.id,
+          lien: `/patient/appointments`,
+          data: {
+            rendezVousId: rendezVousComplet.id,
+            medecinId: rendezVousComplet.medecinId,
+            date: rendezVousComplet.date,
+            statut: rendezVousComplet.statut
+          }
+        })
+
+        // Notification pour le médecin
+        await creerNotification({
+          titre: "Rendez-vous modifié",
+          message: `Le rendez-vous avec ${rendezVousComplet.patient.utilisateur.prenom} ${rendezVousComplet.patient.utilisateur.nom} a été modifié pour le ${new Date(rendezVousComplet.date).toLocaleDateString('fr-FR')} à ${rendezVousComplet.date.toTimeString().slice(0, 5)}.`,
+          type: TypeNotification.RENDEZ_VOUS,
+          utilisateurId: rendezVousComplet.medecin.userId,
+          lien: `/medecin/appointments`,
+          data: {
+            rendezVousId: rendezVousComplet.id,
+            patientId: rendezVousComplet.patientId,
+            date: rendezVousComplet.date,
+            statut: rendezVousComplet.statut
+          }
+        })
+
+        console.log('✅ Notifications en base de données de modification créées pour le rendez-vous:', params.rendezVousId)
+      } catch (notifError) {
+        console.error('⚠️ Erreur lors de la création des notifications en BDD de modification:', notifError)
       }
     }
 
@@ -699,13 +775,50 @@ export async function annulerRendezVousPatient(rendezVousId: string) {
         } : undefined
       }
 
-      // Envoyer les notifications (ne pas bloquer si échec)
+      // Envoyer les notifications email (ne pas bloquer si échec)
       try {
         await sendRendezVousCancelledNotification(notificationData)
-        console.log('✅ Notifications d\'annulation envoyées pour le rendez-vous:', rendezVousId)
+        console.log('✅ Notifications email d\'annulation envoyées pour le rendez-vous:', rendezVousId)
       } catch (emailError) {
-        console.error('⚠️ Erreur lors de l\'envoi des notifications d\'annulation:', emailError)
+        console.error('⚠️ Erreur lors de l\'envoi des notifications email d\'annulation:', emailError)
         // Ne pas faire échouer l'annulation si l'email échoue
+      }
+
+      // Créer les notifications en base de données
+      try {
+        // Notification pour le patient
+        await creerNotification({
+          titre: "Rendez-vous annulé",
+          message: `Votre rendez-vous avec Dr. ${rendezVousComplet.medecin.utilisateur.prenom} ${rendezVousComplet.medecin.utilisateur.nom} prévu le ${new Date(rendezVousComplet.date).toLocaleDateString('fr-FR')} a été annulé.`,
+          type: TypeNotification.RENDEZ_VOUS,
+          utilisateurId: rendezVousComplet.patient.userId,
+          lien: `/patient/appointments`,
+          data: {
+            rendezVousId: rendezVousComplet.id,
+            medecinId: rendezVousComplet.medecinId,
+            date: rendezVousComplet.date,
+            statut: 'ANNULE'
+          }
+        })
+
+        // Notification pour le médecin
+        await creerNotification({
+          titre: "Rendez-vous annulé",
+          message: `Le rendez-vous avec ${rendezVousComplet.patient.utilisateur.prenom} ${rendezVousComplet.patient.utilisateur.nom} prévu le ${new Date(rendezVousComplet.date).toLocaleDateString('fr-FR')} a été annulé.`,
+          type: TypeNotification.RENDEZ_VOUS,
+          utilisateurId: rendezVousComplet.medecin.userId,
+          lien: `/medecin/appointments`,
+          data: {
+            rendezVousId: rendezVousComplet.id,
+            patientId: rendezVousComplet.patientId,
+            date: rendezVousComplet.date,
+            statut: 'ANNULE'
+          }
+        })
+
+        console.log('✅ Notifications en base de données d\'annulation créées pour le rendez-vous:', rendezVousId)
+      } catch (notifError) {
+        console.error('⚠️ Erreur lors de la création des notifications en BDD d\'annulation:', notifError)
       }
     }
 
