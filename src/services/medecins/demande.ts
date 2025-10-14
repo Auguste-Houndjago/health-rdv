@@ -468,9 +468,9 @@ export async function mettreAJourStatutDemande({
     const user = await getUserInfo();
     
     // Vérification des permissions (à décommenter si nécessaire)
-    if (user?.role !== "ADMIN") {
-      return { success: false, error: "Accès non autorisé" };
-    }
+    // if (user?.role !== "ADMIN") {
+    //   return { success: false, error: "Accès non autorisé" };
+    // }
 
     const adminId = user?.id;
     // Utilisation d'une transaction pour plus de sécurité
