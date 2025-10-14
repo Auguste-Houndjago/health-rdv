@@ -100,6 +100,33 @@ export function BirthdateStepCard({
   onBack: () => void
   canNext: boolean
 }) {
+  // Calculer les limites de dates
+  const today = new Date()
+  const maxDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate()) // Minimum 13 ans
+  const minDate = new Date(today.getFullYear() - 120, today.getMonth(), today.getDate()) // Maximum 120 ans
+  
+  const formatDateForInput = (date: Date) => {
+    return date.toISOString().split('T')[0]
+  }
+
+  // Calculer l'âge pour afficher un message d'erreur
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return null
+    
+    const today = new Date()
+    const birth = new Date(birthDate)
+    const age = today.getFullYear() - birth.getFullYear()
+    const monthDiff = today.getMonth() - birth.getMonth()
+    
+    // Ajuster l'âge si l'anniversaire n'est pas encore passé cette année
+    return monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate()) 
+      ? age - 1 
+      : age
+  }
+
+  const age = calculateAge(dateNaissance)
+  const isAgeValid = age !== null && age >= 13 && age <= 120
+
   return (
     <StepCard title="Profil utilisateur">
       <div className="flex flex-col gap-4">
@@ -122,8 +149,28 @@ export function BirthdateStepCard({
             type="date"
             value={dateNaissance}
             onChange={(e) => setDateNaissance(e.target.value)}
+            min={formatDateForInput(minDate)}
+            max={formatDateForInput(maxDate)}
             className="mt-1"
           />
+          {dateNaissance && (
+            <div className="mt-1">
+              {isAgeValid ? (
+                <p className="text-xs text-green-600">
+                  Âge: {age} ans ✓
+                </p>
+              ) : (
+                <p className="text-xs text-red-600">
+                  Âge: {age} ans - Vous devez avoir entre 13 et 120 ans
+                </p>
+              )}
+            </div>
+          )}
+          {!dateNaissance && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Vous devez avoir entre 13 et 120 ans
+            </p>
+          )}
         </div>
         <div className="flex justify-between mt-2">
           <Button variant="outline" onClick={onBack}>

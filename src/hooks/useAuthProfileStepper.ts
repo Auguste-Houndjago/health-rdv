@@ -68,7 +68,20 @@ export function useAuthProfileStepper(role: Role) {
       case 1:
         return nom.trim().length > 0 && prenom.trim().length > 0
       case 2:
-        return dateNaissance.trim().length > 0
+        if (!dateNaissance.trim()) return false
+        
+        // Validation de l'âge (entre 13 et 120 ans)
+        const today = new Date()
+        const birthDate = new Date(dateNaissance)
+        const age = today.getFullYear() - birthDate.getFullYear()
+        const monthDiff = today.getMonth() - birthDate.getMonth()
+        
+        // Ajuster l'âge si l'anniversaire n'est pas encore passé cette année
+        const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) 
+          ? age - 1 
+          : age
+        
+        return actualAge >= 13 && actualAge <= 120
       case 3:
         if (role === 'PATIENT') {
           return sexe !== "" && groupeSanguin !== ""
