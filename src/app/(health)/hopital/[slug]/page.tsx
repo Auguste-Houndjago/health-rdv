@@ -35,7 +35,7 @@ export default async function HopitalPage({ params }: HopitalPageProps) {
 
     return (
       <div className="flex relative flex-col min-h-screen  mx-auto py-6 px-4 lg:px-20  space-y-6">
-                <NoiseOverlay intensity={18} blendMode="difference" />
+                <NoiseOverlay intensity={14} blendMode="difference" />
         {/* En-tête */}
         <HopitalHeader
           slug={slug}
@@ -59,7 +59,7 @@ export default async function HopitalPage({ params }: HopitalPageProps) {
       />
 
         {/* Spécialités et Médecins */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 isolate">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">

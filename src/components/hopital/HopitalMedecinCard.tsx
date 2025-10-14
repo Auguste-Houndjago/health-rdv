@@ -37,8 +37,8 @@ export const HopitalMedecinCard = ({
       style={{ top: `${20 + index * 12}px` }}
     >
       <div className={cn(
-        "p-6 rounded-xl border transition-all duration-300 hover:shadow-md",
-        "bg-card hover:border-primary/50"
+        "p-6 rounded-xl border-2 border-gray-200  transition-all duration-300 hover:shadow-md",
+        "bg-card hover:border-primary/50  "
       )}>
         {/* Section principale : Image et infos */}       
         <div className="flex items-start gap-4">
@@ -64,11 +64,11 @@ export const HopitalMedecinCard = ({
                 <h3 className="font-semibold text-lg text-foreground truncate">
                   {medecin.titre || 'Dr.'} {medecin.prenom} {medecin.nom}
                 </h3>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm  text-muted-foreground">
                   {medecin.specialite}
                 </p>
               </div>
-              <Badge variant="secondary" className="flex-shrink-0">
+              <Badge variant="secondary" className="border border-white/50 flex-shrink-0">
                 {medecin.specialite}
               </Badge>
             </div>
