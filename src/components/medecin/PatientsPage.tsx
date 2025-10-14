@@ -221,11 +221,6 @@ export default function PatientsPage({ medecinId }: { medecinId: string }) {
 
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <div className="text-sm text-muted-foreground">
-              {data.items.length} patient{data.items.length > 1 ? "s" : ""} affiché
-              {data.items.length > 1 ? "s" : ""}
-              {applied && " (filtrés)"}
-            </div>
             
             {loading && (
               <div className="text-sm text-muted-foreground">

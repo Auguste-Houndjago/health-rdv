@@ -2,6 +2,7 @@
 "use server"
 import { prisma } from "@/lib/prisma";
 import { getAuthUser } from "@/services/users/utils";
+import { createClient } from "@/utils/supabase/server";
 import { GroupeSanguin, Sexe } from "@prisma/client";
 
 /**
@@ -18,9 +19,24 @@ export async function upsertIdentiteUtilisateur(params: {
   if (!user) {
     throw new Error("=== User not found ===")
   }
+  const supabase = await createClient();
 
   const userId = user?.id!
   const email = user?.email!
+
+  
+
+  const { error: userError } = await supabase.auth.updateUser({
+    data: {
+      nom,
+      prenom
+    },
+  });
+
+  
+  if (userError) {
+    console.error("Erreur lors de la mise à jour des métadonnées Supabase:", userError);
+  }
 
   // Upsert Utilisateur (create if missing, else update)
   return prisma.utilisateur.upsert({
@@ -38,6 +54,8 @@ export async function upsertIdentiteUtilisateur(params: {
       telephone: telephone ?? null,
     },
   })
+
+  
 }
 
 /**

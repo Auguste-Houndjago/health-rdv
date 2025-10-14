@@ -6,8 +6,7 @@ export interface PatientWithUser {
   poids?: number;
   taille?: number;
   sexe?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  userId: string;
   utilisateur: {
     id: string;
     nom: string;
@@ -15,23 +14,33 @@ export interface PatientWithUser {
     email: string;
     telephone?: string;
     avatarUrl?: string;
-    dateNaissance?: Date;
-    sexe?: string;
+    dateNaissance?: string;
+    role: string;
     status: string;
-    createdAt: Date;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt?: string;
   };
   rendezVous: Array<{
     id: string;
-    date: Date;
-    heure: string;
-    motif?: string;
+    date: string;
+    duree: number;
     statut: string;
+    motif?: string;
+    hopitalId: string;
+    utilisateurId: string;
+    medecinId: string;
+    patientId: string;
+    createdAt: string;
+    updatedAt: string;
     medecin: {
       utilisateur: {
         nom: string;
         prenom: string;
+        avatarUrl?: string;
       };
-      specialite?: {
+      specialite: {
+        id: string;
         nom: string;
       };
     };

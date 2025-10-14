@@ -109,7 +109,7 @@ export function TableFilters({ table, onDeleteRows }: TableFiltersProps) {
           </SelectContent>
         </Select>
 
-        <Select value={statusFilter} onValueChange={handleStatusFilter}>
+        {/* <Select value={statusFilter} onValueChange={handleStatusFilter}>
           <SelectTrigger className="w-[140px]">
             <SelectValue placeholder="Statut" />
           </SelectTrigger>
@@ -119,7 +119,7 @@ export function TableFilters({ table, onDeleteRows }: TableFiltersProps) {
             <SelectItem value="INACTIF">Inactif</SelectItem>
             <SelectItem value="PENDING">En attente</SelectItem>
           </SelectContent>
-        </Select>
+        </Select> */}
 
         {table.getFilteredSelectedRowModel().rows.length > 0 && (
           <div className="flex items-center gap-2">
@@ -146,7 +146,7 @@ export function TableFilters({ table, onDeleteRows }: TableFiltersProps) {
           {searchQuery && <Badge variant="outline">Recherche: "{searchQuery}"</Badge>}
           {sexeFilter !== "all" && <Badge variant="outline">Sexe: {sexeFilter}</Badge>}
           {groupeSanguinFilter !== "all" && <Badge variant="outline">Groupe: {groupeSanguinFilter}</Badge>}
-          {statusFilter !== "all" && <Badge variant="outline">Statut: {statusFilter}</Badge>}
+          {/* {statusFilter !== "all" && <Badge variant="outline">Statut: {statusFilter}</Badge>} */}
         </div>
       )}
     </div>

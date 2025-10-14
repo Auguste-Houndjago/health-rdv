@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Pagination, PaginationContent, PaginationItem } from "@/components/ui/pagination"
@@ -45,6 +45,11 @@ export default function PatientsTable({ patients, isLoading = false }: PatientsT
 
   const [data, setData] = useState<PatientWithUser[]>(patients)
 
+  // Synchroniser les données avec les props
+  useEffect(() => {
+    setData(patients)
+  }, [patients])
+
   const columns = useMemo(() => getColumns({ data, setData }), [data])
 
   const handleDeleteRows = () => {
@@ -77,8 +82,16 @@ export default function PatientsTable({ patients, isLoading = false }: PatientsT
 
   return (
     <div className="space-y-4">
+      {/* Debug - à supprimer en production */}
+      <div className="text-xs text-muted-foreground">
+        Patients reçus: {patients.length} | Patients affichées: {data.length}
+      </div>
+      
       {/* Filters */}
       <TableFilters table={table} onDeleteRows={handleDeleteRows} />
+
+
+
 
       {/* Table */}
       <Table className="table-fixed border-separate border-spacing-0 [&_tr:not(:last-child)_td]:border-b">

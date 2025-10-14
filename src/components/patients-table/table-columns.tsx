@@ -17,7 +17,7 @@ import {
 import type { PatientWithUser } from "./types"
 import { format } from "date-fns"
 import { fr } from "date-fns/locale"
-import { Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react"
+import { Edit, Eye, Mail, MailIcon, MoreHorizontal, Trash2 } from "lucide-react"
 
 interface TableColumnsProps {
   data: PatientWithUser[]
@@ -74,7 +74,7 @@ export const getColumns = ({ data, setData }: TableColumnsProps): ColumnDef<Pati
     accessorKey: "sexe",
     header: "Sexe",
     cell: ({ row }) => {
-      const sexe = row.original.sexe || row.original.utilisateur.sexe
+      const sexe = row.original.sexe
       return sexe ? (
         <Badge variant="secondary" className="text-xs">
           {sexe}
@@ -142,10 +142,13 @@ export const getColumns = ({ data, setData }: TableColumnsProps): ColumnDef<Pati
       }
       
       const dernierRDV = rendezVous[0]
+      const dateRDV = new Date(dernierRDV.date)
+      const heure = dateRDV.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      
       return (
         <div className="text-sm">
-          <div>{format(new Date(dernierRDV.date), "dd/MM/yyyy", { locale: fr })}</div>
-          <div className="text-xs text-muted-foreground">{dernierRDV.heure}</div>
+          <div>{format(dateRDV, "dd/MM/yyyy", { locale: fr })}</div>
+          <div className="text-xs text-muted-foreground">{heure}</div>
         </div>
       )
     },
@@ -171,18 +174,16 @@ export const getColumns = ({ data, setData }: TableColumnsProps): ColumnDef<Pati
               Copier l'ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Eye className="mr-2 h-4 w-4" />
-              Voir le profil
+            <DropdownMenuItem
+              onClick={() => {
+                const email = patient.utilisateur.email
+                window.open(`mailto:${email}`, '_blank')
+              }}
+            >
+              <MailIcon className="mr-2 h-4 w-4" />
+              Contacter
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Edit className="mr-2 h-4 w-4" />
-              Modifier
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Supprimer
-            </DropdownMenuItem>
+
           </DropdownMenuContent>
         </DropdownMenu>
       )
