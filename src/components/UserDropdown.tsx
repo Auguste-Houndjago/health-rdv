@@ -49,7 +49,7 @@ export default function UserDropdown({name,avatarUrl,email}: {name?: string, ava
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
-            <Link href="/patient">
+            <Link href="/appointments">
               <BoltIcon size={16} className="opacity-60" aria-hidden="true" />
               <span>dashboard</span>
             </Link>
