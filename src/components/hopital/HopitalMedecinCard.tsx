@@ -1,10 +1,11 @@
 "use client"
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import {  Award, Calendar, Link } from "lucide-react";
+import {  Award, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export interface HopitalMedecin {
   id: string;
@@ -81,19 +82,6 @@ export const HopitalMedecinCard = ({
                 </span>
               </div>
             )}
-
-            {/* Actions */}
-            <div >
-              <Link className="flex gap-2 mt-4" href={`/medecin/${medecin.id}`}>
-              <Button size="sm" className="flex-1">
-                <Calendar className="h-4 w-4 mr-2" />
-                Prendre RDV
-              </Button>
-              </Link>
-              <Button size="sm" variant="outline">
-                Voir profil
-              </Button>
-            </div>
           </div>
         </div>
       </div>

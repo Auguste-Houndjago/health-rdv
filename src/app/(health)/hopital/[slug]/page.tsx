@@ -116,17 +116,7 @@ export default async function HopitalPage({ params }: HopitalPageProps) {
           </Card>
         </div>
 
-        {/* Actions */}
-        <div className=" flex justify-center space-x-4">
-          <Button size="lg">
-            <Calendar className="h-4 w-4 mr-2" />
-            Prendre rendez-vous
-          </Button>
-          <Button variant="outline" size="lg">
-            <Phone className="h-4 w-4 mr-2" />
-            Nous contacter
-          </Button>
-        </div>
+ 
       </div>
     )
   } catch (error) {
