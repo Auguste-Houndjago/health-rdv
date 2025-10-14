@@ -115,7 +115,7 @@ export function DocumentUpload({ patientId, onUploadSuccess }: DocumentUploadPro
                 <div className="flex items-center gap-3">
                   <File className="h-8 w-8 text-blue-500" />
                   <div>
-                    <p className="font-medium text-sm">{selectedFile.name}</p>
+                    <p className="font-medium w-[150px] xl:w-[200px] text-sm truncate">{selectedFile.name}</p>
                     <p className="text-xs text-gray-500">
                       {formatFileSize(selectedFile.size)} • {selectedFile.type}
                     </p>

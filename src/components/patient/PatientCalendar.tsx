@@ -413,7 +413,7 @@ export default function PatientCalendar() {
               </CardContent>
             </Card>
         </div>
-                
+
           <div className="w-full md:w-80">
             <Card className="h-full">
               <CardHeader className="pb-3">

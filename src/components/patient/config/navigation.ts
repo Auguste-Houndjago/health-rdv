@@ -15,5 +15,17 @@ export const navigationItems = [
       icon: Calendar,
       description: "Gérer mes RDV"
     },
+    {
+      name: "Documents",
+      href: "/patient/documents",
+      icon: FileText,
+      description: "Gérer mes documents"
+    },
+    {
+      name: "Notifications",
+      href: "/patient/notification",
+      icon: Bell,
+      description: "Gérer mes notifications"
+    },
    
   ];
