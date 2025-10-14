@@ -3,6 +3,11 @@
 import { prisma } from "@/lib/prisma"
 import { getUserInfo } from "@/services/users"
 import { getCreneauxDisponibles } from "@/services/medecins/disponibilites"
+import { 
+  sendRendezVousCreatedNotification,
+  sendRendezVousCancelledNotification 
+} from "@/services/notifications/email"
+import { RendezVousNotificationData } from "@/services/notifications/types"
 
 export interface MedecinDisponible {
   id: string
@@ -274,6 +279,59 @@ export async function creerRendezVousPatient(params: CreerRendezVousParams) {
       where: { id: params.hopitalId }
     }) : null
 
+    // Récupérer les informations du patient pour la notification
+    const patientInfo = await prisma.patient.findUnique({
+      where: { id: patient.id },
+      include: {
+        utilisateur: {
+          select: {
+            nom: true,
+            prenom: true,
+            email: true,
+            telephone: true
+          }
+        }
+      }
+    })
+
+    // Envoyer les notifications email
+    if (medecinInfo && patientInfo) {
+      const notificationData: RendezVousNotificationData = {
+        id: rendezVous.id,
+        date: rendezVous.date,
+        heure: rendezVous.date.toTimeString().slice(0, 5),
+        duree: rendezVous.duree,
+        motif: rendezVous.motif || '',
+        statut: rendezVous.statut,
+        patient: {
+          nom: patientInfo.utilisateur.nom,
+          prenom: patientInfo.utilisateur.prenom || '',
+          email: patientInfo.utilisateur.email,
+          telephone: patientInfo.utilisateur.telephone || undefined
+        },
+        medecin: {
+          nom: medecinInfo.utilisateur.nom,
+          prenom: medecinInfo.utilisateur.prenom || '',
+          email: medecinInfo.utilisateur.email,
+          titre: medecinInfo.titre,
+          specialite: medecinInfo.specialite?.nom
+        },
+        hopital: hopitalInfo ? {
+          nom: hopitalInfo.nom,
+          adresse: hopitalInfo.adresse
+        } : undefined
+      }
+
+      // Envoyer les notifications (ne pas bloquer si échec)
+      try {
+        await sendRendezVousCreatedNotification(notificationData)
+        console.log('✅ Notifications envoyées pour le rendez-vous:', rendezVous.id)
+      } catch (emailError) {
+        console.error('⚠️ Erreur lors de l\'envoi des notifications:', emailError)
+        // Ne pas faire échouer la création du RDV si l'email échoue
+      }
+    }
+
     return {
       success: true,
       data: {
@@ -295,7 +353,8 @@ export async function creerRendezVousPatient(params: CreerRendezVousParams) {
         duree: rendezVous.duree,
         motif: rendezVous.motif || '',
         statut: rendezVous.statut,
-        hopitalId: rendezVous.hopitalId
+        hopitalId: rendezVous.hopitalId,
+        patientId: patient.id
       }
     }
 
@@ -459,6 +518,64 @@ export async function modifierRendezVousPatient(params: {
       }
     })
 
+    // Récupérer les informations complètes pour la notification
+    const rendezVousComplet = await prisma.rendezVous.findUnique({
+      where: { id: params.rendezVousId },
+      include: {
+        medecin: {
+          include: {
+            utilisateur: true,
+            specialite: true
+          }
+        },
+        patient: {
+          include: {
+            utilisateur: true
+          }
+        },
+        hopital: true
+      }
+    })
+
+    // Envoyer une notification de modification (utilise le template de création avec indication de modification)
+    if (rendezVousComplet) {
+      const notificationData: RendezVousNotificationData = {
+        id: rendezVousComplet.id,
+        date: rendezVousComplet.date,
+        heure: rendezVousComplet.date.toTimeString().slice(0, 5),
+        duree: rendezVousComplet.duree,
+        motif: rendezVousComplet.motif || '',
+        statut: rendezVousComplet.statut,
+        patient: {
+          nom: rendezVousComplet.patient.utilisateur.nom,
+          prenom: rendezVousComplet.patient.utilisateur.prenom || '',
+          email: rendezVousComplet.patient.utilisateur.email,
+          telephone: rendezVousComplet.patient.utilisateur.telephone || undefined
+        },
+        medecin: {
+          nom: rendezVousComplet.medecin.utilisateur.nom,
+          prenom: rendezVousComplet.medecin.utilisateur.prenom || '',
+          email: rendezVousComplet.medecin.utilisateur.email,
+          titre: rendezVousComplet.medecin.titre,
+          specialite: rendezVousComplet.medecin.specialite?.nom
+        },
+        hopital: rendezVousComplet.hopital ? {
+          nom: rendezVousComplet.hopital.nom,
+          adresse: rendezVousComplet.hopital.adresse
+        } : undefined
+      }
+
+      // Envoyer les notifications (ne pas bloquer si échec)
+      try {
+        // Utilise le template de création avec le statut modifié
+        await sendRendezVousCreatedNotification(notificationData)
+        console.log('✅ Notifications de modification envoyées pour le rendez-vous:', params.rendezVousId)
+      } catch (emailError) {
+        console.error('⚠️ Erreur lors de l\'envoi des notifications de modification:', emailError)
+        // Ne pas faire échouer la modification si l'email échoue
+      }
+    }
+
     return {
       success: true,
       data: updatedRendezVous,
@@ -534,6 +651,63 @@ export async function annulerRendezVousPatient(rendezVousId: string) {
       where: { id: rendezVousId },
       data: { statut: 'ANNULE' }
     })
+
+    // Récupérer les informations complètes pour la notification
+    const rendezVousComplet = await prisma.rendezVous.findUnique({
+      where: { id: rendezVousId },
+      include: {
+        medecin: {
+          include: {
+            utilisateur: true,
+            specialite: true
+          }
+        },
+        patient: {
+          include: {
+            utilisateur: true
+          }
+        },
+        hopital: true
+      }
+    })
+
+    // Envoyer les notifications d'annulation
+    if (rendezVousComplet) {
+      const notificationData: RendezVousNotificationData = {
+        id: rendezVousComplet.id,
+        date: rendezVousComplet.date,
+        heure: rendezVousComplet.date.toTimeString().slice(0, 5),
+        duree: rendezVousComplet.duree,
+        motif: rendezVousComplet.motif || '',
+        statut: 'ANNULE',
+        patient: {
+          nom: rendezVousComplet.patient.utilisateur.nom,
+          prenom: rendezVousComplet.patient.utilisateur.prenom || '',
+          email: rendezVousComplet.patient.utilisateur.email,
+          telephone: rendezVousComplet.patient.utilisateur.telephone || undefined
+        },
+        medecin: {
+          nom: rendezVousComplet.medecin.utilisateur.nom,
+          prenom: rendezVousComplet.medecin.utilisateur.prenom || '',
+          email: rendezVousComplet.medecin.utilisateur.email,
+          titre: rendezVousComplet.medecin.titre,
+          specialite: rendezVousComplet.medecin.specialite?.nom
+        },
+        hopital: rendezVousComplet.hopital ? {
+          nom: rendezVousComplet.hopital.nom,
+          adresse: rendezVousComplet.hopital.adresse
+        } : undefined
+      }
+
+      // Envoyer les notifications (ne pas bloquer si échec)
+      try {
+        await sendRendezVousCancelledNotification(notificationData)
+        console.log('✅ Notifications d\'annulation envoyées pour le rendez-vous:', rendezVousId)
+      } catch (emailError) {
+        console.error('⚠️ Erreur lors de l\'envoi des notifications d\'annulation:', emailError)
+        // Ne pas faire échouer l'annulation si l'email échoue
+      }
+    }
 
     return {
       success: true,
