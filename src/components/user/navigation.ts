@@ -94,7 +94,7 @@ export const navigationConfig: Record<UserRole, NavigationItem[]> = {
     },
     {
       label: 'Mes Rendez-vous',
-      href: '/patient/rendez-vous',
+      href: '/patient/appointments',
       icon: ClipboardList
     },
   ],
