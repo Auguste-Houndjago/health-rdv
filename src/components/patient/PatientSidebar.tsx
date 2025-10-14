@@ -70,7 +70,9 @@ export default function PatientSidebar({user}: {user: User}) {
               <Heart className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="font-bold text-lg text-foreground">MedEasy</h1>
+              <Link className="font-bold text-lg text-foreground" href="/">
+              MedEasy
+              </Link>
               <p className="text-xs text-muted-foreground"> Portal Patient</p>
             </div>
           </div>
