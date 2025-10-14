@@ -2,12 +2,9 @@ import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
   Users,
   Stethoscope,
-  Calendar,
-  Phone
 } from "lucide-react"
 import HospitalStats from "@/components/hopital/HospitalStats"
 import HopitalHeader from "@/components/hopital/HopitalHeader"
