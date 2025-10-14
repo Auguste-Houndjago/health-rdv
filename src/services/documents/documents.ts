@@ -36,6 +36,7 @@ export async function createDocument(input: CreateDocumentInput) {
         description: input.description,
         url: input.url,
         patientId: input.patientId,
+       
         // Vous pouvez ajouter des champs supplémentaires si besoin
       },
       include: {
